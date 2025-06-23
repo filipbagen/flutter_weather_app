@@ -1,4 +1,3 @@
-outfit_page.dart
 import 'package:flutter/material.dart';
 
 class OutfitPage extends StatefulWidget {
