@@ -52,7 +52,17 @@ class _WeatherPageState extends State<WeatherPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Location services disabled - could show a snackbar here if needed
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please enable location services to get weather data',
+            ),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
       return;
     }
 
@@ -60,13 +70,38 @@ class _WeatherPageState extends State<WeatherPage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        // Location permissions denied - could show a snackbar here if needed
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Location permission is required to get weather data',
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        }
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      // Location permissions permanently denied - could show a snackbar here if needed
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Location permission permanently denied. Please enable it in settings.',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Settings',
+              textColor: Colors.white,
+              onPressed: () => Geolocator.openAppSettings(),
+            ),
+          ),
+        );
+      }
       return;
     }
 
@@ -79,7 +114,15 @@ class _WeatherPageState extends State<WeatherPage> {
 
       _fetchWeatherData();
     } catch (e) {
-      // Error getting location - could show a snackbar here if needed
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error getting location: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 
@@ -136,6 +179,38 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  Widget _buildWeatherDetail(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: Theme.of(
+            context,
+          ).colorScheme.onPrimaryContainer.withOpacity(0.8),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(
+              context,
+            ).colorScheme.onPrimaryContainer.withOpacity(0.7),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -156,8 +231,86 @@ class _WeatherPageState extends State<WeatherPage> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
+              // Loading state
+              if (widget.isLoading)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Fetching weather data...',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              // No data state
+              if (!widget.isLoading && _weatherData == null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Getting your location...',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Please allow location access to get weather data',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
               // Current Weather - Hero Card
-              if (_weatherData != null)
+              if (!widget.isLoading && _weatherData != null)
                 Container(
                   width: double.infinity,
                   margin: const EdgeInsets.only(bottom: 24),
@@ -264,6 +417,39 @@ class _WeatherPageState extends State<WeatherPage> {
                                     context,
                                   ).colorScheme.onPrimaryContainer,
                                 ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Additional Weather Details
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surface.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildWeatherDetail(
+                                    'Feels like',
+                                    '${_weatherData!.feelsLikeCelsius.round()}°',
+                                    Icons.thermostat,
+                                  ),
+                                  _buildWeatherDetail(
+                                    'Humidity',
+                                    '${_weatherData!.humidity}%',
+                                    Icons.water_drop,
+                                  ),
+                                  _buildWeatherDetail(
+                                    'Wind',
+                                    '${_weatherData!.windSpeed.toStringAsFixed(1)} m/s',
+                                    Icons.air,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
