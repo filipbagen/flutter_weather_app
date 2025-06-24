@@ -4,6 +4,7 @@ import 'pages/weather_page.dart';
 import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
 import 'models/weather_data.dart';
+import 'services/ai_service.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -64,11 +65,52 @@ class _BottomNavigationBarExampleState
     extends State<BottomNavigationBarExample> {
   int _selectedIndex = 0;
   WeatherData? _sharedWeatherData;
+  String? _outfitRecommendation;
+  bool _isLoadingOutfit = false;
 
-  void _updateWeatherData(WeatherData? weatherData) {
+  void _updateWeatherData(WeatherData? weatherData) async {
     setState(() {
       _sharedWeatherData = weatherData;
     });
+
+    // If we have new weather data and no recommendation yet, get one
+    if (weatherData != null && _outfitRecommendation == null) {
+      await _getOutfitRecommendation();
+    }
+  }
+
+  Future<void> _getOutfitRecommendation() async {
+    if (_sharedWeatherData == null) return;
+
+    setState(() {
+      _isLoadingOutfit = true;
+    });
+
+    try {
+      final recommendation = await AIService.getOutfitRecommendation(
+        _sharedWeatherData!,
+      );
+      setState(() {
+        _outfitRecommendation = recommendation;
+        _isLoadingOutfit = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingOutfit = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error getting outfit recommendation: $e')),
+        );
+      }
+    }
+  }
+
+  void _refreshOutfitRecommendation() {
+    setState(() {
+      _outfitRecommendation = null;
+    });
+    _getOutfitRecommendation();
   }
 
   void _onItemTapped(int index) {
@@ -86,7 +128,12 @@ class _BottomNavigationBarExampleState
         currentPage = WeatherPage(onWeatherUpdate: _updateWeatherData);
         break;
       case 1:
-        currentPage = OutfitPage(weatherData: _sharedWeatherData);
+        currentPage = OutfitPage(
+          weatherData: _sharedWeatherData,
+          outfitRecommendation: _outfitRecommendation,
+          isLoading: _isLoadingOutfit,
+          onRefresh: _refreshOutfitRecommendation,
+        );
         break;
       case 2:
         currentPage = const AboutPage();

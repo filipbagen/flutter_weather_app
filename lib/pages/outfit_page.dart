@@ -1,65 +1,25 @@
 import 'package:flutter/material.dart';
-import '../services/ai_service.dart';
 import '../models/weather_data.dart';
 
 class OutfitPage extends StatefulWidget {
   final WeatherData? weatherData;
+  final String? outfitRecommendation;
+  final bool isLoading;
+  final VoidCallback? onRefresh;
 
-  const OutfitPage({super.key, this.weatherData});
+  const OutfitPage({
+    super.key,
+    this.weatherData,
+    this.outfitRecommendation,
+    this.isLoading = false,
+    this.onRefresh,
+  });
 
   @override
   State<OutfitPage> createState() => _OutfitPageState();
 }
 
 class _OutfitPageState extends State<OutfitPage> {
-  String? _outfitRecommendation;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.weatherData != null) {
-      _getOutfitRecommendation();
-    }
-  }
-
-  @override
-  void didUpdateWidget(OutfitPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // If weather data changes, get new recommendation
-    if (widget.weatherData != oldWidget.weatherData &&
-        widget.weatherData != null) {
-      _getOutfitRecommendation();
-    }
-  }
-
-  Future<void> _getOutfitRecommendation() async {
-    if (widget.weatherData == null) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final recommendation = await AIService.getOutfitRecommendation(
-        widget.weatherData!,
-      );
-      setState(() {
-        _outfitRecommendation = recommendation;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error getting outfit recommendation: $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -195,11 +155,11 @@ class _OutfitPageState extends State<OutfitPage> {
                                 ),
                               ),
                             ),
-                            if (!_isLoading &&
-                                _outfitRecommendation != null &&
+                            if (!widget.isLoading &&
+                                widget.outfitRecommendation != null &&
                                 widget.weatherData != null)
                               IconButton(
-                                onPressed: _getOutfitRecommendation,
+                                onPressed: widget.onRefresh,
                                 icon: Icon(
                                   Icons.refresh,
                                   color: Theme.of(
@@ -215,9 +175,9 @@ class _OutfitPageState extends State<OutfitPage> {
                         // Content based on state
                         if (widget.weatherData == null)
                           _buildNoWeatherContent()
-                        else if (_isLoading)
+                        else if (widget.isLoading)
                           _buildLoadingContent()
-                        else if (_outfitRecommendation != null)
+                        else if (widget.outfitRecommendation != null)
                           _buildRecommendationContent()
                         else
                           _buildErrorContent(),
@@ -337,7 +297,7 @@ class _OutfitPageState extends State<OutfitPage> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            _outfitRecommendation!,
+            widget.outfitRecommendation!,
             style: TextStyle(
               fontSize: 18,
               height: 1.5,
@@ -389,7 +349,7 @@ class _OutfitPageState extends State<OutfitPage> {
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
-            onPressed: _getOutfitRecommendation,
+            onPressed: widget.onRefresh,
             icon: const Icon(Icons.refresh),
             label: const Text('Try Again'),
           ),
