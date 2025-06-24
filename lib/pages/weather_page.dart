@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/weather_service.dart';
 import '../models/weather_data.dart';
+import '../models/forecast_data.dart';
 
 class WeatherPage extends StatefulWidget {
   const WeatherPage({super.key});
@@ -15,6 +16,7 @@ class _WeatherPageState extends State<WeatherPage> {
   double? _latitude;
   double? _longitude;
   WeatherData? _weatherData;
+  ForecastData? _forecastData;
   bool _isLoadingWeather = false;
 
   @override
@@ -87,8 +89,13 @@ class _WeatherPageState extends State<WeatherPage> {
         _latitude!,
         _longitude!,
       );
+      final forecastData = await WeatherService.getForecast(
+        _latitude!,
+        _longitude!,
+      );
       setState(() {
         _weatherData = weatherData;
+        _forecastData = forecastData;
         _isLoadingWeather = false;
       });
     } catch (e) {
@@ -104,65 +111,40 @@ class _WeatherPageState extends State<WeatherPage> {
     }
   }
 
+  String _formatDate(DateTime date) {
+    List<String> weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    String weekday = weekdays[date.weekday - 1];
+    String month = months[date.month - 1];
+
+    return '$weekday, $month ${date.day}';
+  }
+
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Weather Page',
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Text(
-                    'Current Location',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(_locationMessage, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 10),
-                  if (_latitude != null && _longitude != null) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Latitude:',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        Text(
-                          _latitude!.toStringAsFixed(6),
-                          style: const TextStyle(fontFamily: 'monospace'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Longitude:',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        Text(
-                          _longitude!.toStringAsFixed(6),
-                          style: const TextStyle(fontFamily: 'monospace'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // Weather Information Card
+          // Current Weather Card (at the top)
           if (_isLoadingWeather)
             const Card(
               child: Padding(
@@ -237,7 +219,139 @@ class _WeatherPageState extends State<WeatherPage> {
                 ),
               ),
             ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 16),
+
+          // Hourly Forecast (scrollable in the middle)
+          if (_forecastData != null)
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Hourly Forecast (Next 24h)',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _forecastData!.hourlyForecasts.length,
+                          itemBuilder: (context, index) {
+                            final forecast =
+                                _forecastData!.hourlyForecasts[index];
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _formatTime(forecast.date),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        forecast.description,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${forecast.temperatureCelsius.round()}°C',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 16),
+
+          // 5-Day Forecast Card (at the bottom)
+          if (_forecastData != null)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '5-Day Forecast',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...(_forecastData!.dailyForecasts.map(
+                      (forecast) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                _formatDate(forecast.date),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                forecast.description,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                '${forecast.minTemp.round()}° / ${forecast.maxTemp.round()}°',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.end,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )),
+                  ],
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _getCurrentLocation,
             child: const Text('Refresh Location & Weather'),
