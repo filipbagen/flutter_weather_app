@@ -53,7 +53,7 @@ class ForecastData {
   // Get daily forecasts with min/max temperatures
   List<DailyForecast> get dailyForecasts {
     Map<String, List<ForecastItem>> groupedByDay = {};
-    
+
     for (var item in items) {
       String dateKey = '${item.date.year}-${item.date.month}-${item.date.day}';
       if (!groupedByDay.containsKey(dateKey)) {
@@ -63,23 +63,29 @@ class ForecastData {
     }
 
     List<DailyForecast> dailyForecasts = [];
-    
+
     for (var entry in groupedByDay.entries.take(5)) {
       List<ForecastItem> dayItems = entry.value;
-      
+
       // Find min and max temperatures for the day
-      double minTemp = dayItems.map((item) => item.temperatureCelsius).reduce((a, b) => a < b ? a : b);
-      double maxTemp = dayItems.map((item) => item.temperatureCelsius).reduce((a, b) => a > b ? a : b);
-      
+      double minTemp = dayItems
+          .map((item) => item.temperatureCelsius)
+          .reduce((a, b) => a < b ? a : b);
+      double maxTemp = dayItems
+          .map((item) => item.temperatureCelsius)
+          .reduce((a, b) => a > b ? a : b);
+
       // Use the first item's description and date
-      dailyForecasts.add(DailyForecast(
-        date: dayItems.first.date,
-        description: dayItems.first.description,
-        minTemp: minTemp,
-        maxTemp: maxTemp,
-      ));
+      dailyForecasts.add(
+        DailyForecast(
+          date: dayItems.first.date,
+          description: dayItems.first.description,
+          minTemp: minTemp,
+          maxTemp: maxTemp,
+        ),
+      );
     }
-    
+
     return dailyForecasts;
   }
 }
