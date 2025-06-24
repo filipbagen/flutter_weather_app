@@ -129,7 +129,7 @@ class _WeatherPageState extends State<WeatherPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -145,7 +145,6 @@ class _WeatherPageState extends State<WeatherPage> {
                               );
                             },
                           ),
-                          const SizedBox(width: 16),
                           Text(
                             '${_weatherData!.temperatureCelsius.round()}°C',
                             style: const TextStyle(
