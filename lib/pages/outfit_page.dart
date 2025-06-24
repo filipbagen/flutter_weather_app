@@ -69,26 +69,39 @@ class _OutfitPageState extends State<OutfitPage> {
                       children: [
                         // Header Section
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(
-                              Icons.checkroom,
-                              size: 32,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'AI Outfit Assistant',
-                              style: TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
+                            Expanded(
+                              child: Text(
+                                'AI Outfit Assistant',
+                                style: TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
                               ),
                             ),
+                            if (!widget.isLoading &&
+                                widget.outfitRecommendation != null &&
+                                widget.weatherData != null)
+                              IconButton(
+                                onPressed: widget.onRefresh,
+                                icon: Icon(
+                                  Icons.refresh,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
+                                tooltip: 'Get new recommendation',
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withValues(alpha: 0.3),
+                                  padding: const EdgeInsets.all(12),
+                                ),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -102,32 +115,6 @@ class _OutfitPageState extends State<OutfitPage> {
                           _buildRecommendationContent()
                         else
                           _buildErrorContent(),
-
-                        // Refresh button at bottom right
-                        if (!widget.isLoading &&
-                            widget.outfitRecommendation != null &&
-                            widget.weatherData != null)
-                          Container(
-                            width: double.infinity,
-                            alignment: Alignment.centerRight,
-                            margin: const EdgeInsets.only(top: 16),
-                            child: IconButton(
-                              onPressed: widget.onRefresh,
-                              icon: Icon(
-                                Icons.refresh,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
-                              tooltip: 'Get new recommendation',
-                              style: IconButton.styleFrom(
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.surface.withValues(alpha: 0.3),
-                                padding: const EdgeInsets.all(12),
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                   ),
