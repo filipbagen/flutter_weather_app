@@ -14,7 +14,40 @@ class WeatherApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: BottomNavigationBarExample());
+    return MaterialApp(
+      title: 'Weather App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2196F3),
+          brightness: Brightness.light,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2196F3),
+          brightness: Brightness.dark,
+        ),
+        cardTheme: const CardThemeData(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
+        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
+      ),
+      themeMode: ThemeMode.system,
+      home: const BottomNavigationBarExample(),
+    );
   }
 }
 
@@ -45,17 +78,65 @@ class _BottomNavigationBarExampleState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Flutter Weather App')),
+      appBar: AppBar(
+        title: const Text(
+          'Weather App',
+          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        ),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primaryContainer,
+                Theme.of(context).colorScheme.primaryContainer.withOpacity(0.8),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.wb_sunny), label: 'Weather'),
-          BottomNavigationBarItem(icon: Icon(Icons.checkroom), label: 'Outfit'),
-          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'About'),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Theme.of(
+            context,
+          ).colorScheme.onSurface.withOpacity(0.6),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.wb_sunny_outlined),
+              activeIcon: Icon(Icons.wb_sunny),
+              label: 'Weather',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.checkroom_outlined),
+              activeIcon: Icon(Icons.checkroom),
+              label: 'Outfit',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.info_outlined),
+              activeIcon: Icon(Icons.info),
+              label: 'About',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }

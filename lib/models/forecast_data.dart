@@ -2,11 +2,13 @@ class ForecastItem {
   final DateTime date;
   final double temperatureCelsius;
   final String description;
+  final String icon;
 
   ForecastItem({
     required this.date,
     required this.temperatureCelsius,
     required this.description,
+    required this.icon,
   });
 
   factory ForecastItem.fromJson(Map<String, dynamic> json) {
@@ -14,6 +16,7 @@ class ForecastItem {
       date: DateTime.fromMillisecondsSinceEpoch(json['dt'] * 1000),
       temperatureCelsius: (json['main']['temp'] - 273.15),
       description: json['weather'][0]['description'],
+      icon: json['weather'][0]['icon'],
     );
   }
 }
@@ -23,12 +26,14 @@ class DailyForecast {
   final String description;
   final double minTemp;
   final double maxTemp;
+  final String icon;
 
   DailyForecast({
     required this.date,
     required this.description,
     required this.minTemp,
     required this.maxTemp,
+    required this.icon,
   });
 }
 
@@ -75,13 +80,14 @@ class ForecastData {
           .map((item) => item.temperatureCelsius)
           .reduce((a, b) => a > b ? a : b);
 
-      // Use the first item's description and date
+      // Use the first item's description, date, and icon
       dailyForecasts.add(
         DailyForecast(
           date: dayItems.first.date,
           description: dayItems.first.description,
           minTemp: minTemp,
           maxTemp: maxTemp,
+          icon: dayItems.first.icon,
         ),
       );
     }
