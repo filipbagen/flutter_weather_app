@@ -5,7 +5,9 @@ import '../models/weather_data.dart';
 import '../models/forecast_data.dart';
 
 class WeatherPage extends StatefulWidget {
-  const WeatherPage({super.key});
+  final Function(WeatherData?)? onWeatherUpdate;
+
+  const WeatherPage({super.key, this.onWeatherUpdate});
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
@@ -94,6 +96,11 @@ class _WeatherPageState extends State<WeatherPage> {
         _forecastData = forecastData;
         _isLoadingWeather = false;
       });
+
+      // Notify parent widget about weather data update
+      if (widget.onWeatherUpdate != null) {
+        widget.onWeatherUpdate!(weatherData);
+      }
     } catch (e) {
       setState(() {
         _isLoadingWeather = false;

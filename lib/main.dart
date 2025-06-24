@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/weather_page.dart';
 import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
+import 'models/weather_data.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -62,12 +63,13 @@ class BottomNavigationBarExample extends StatefulWidget {
 class _BottomNavigationBarExampleState
     extends State<BottomNavigationBarExample> {
   int _selectedIndex = 0;
+  WeatherData? _sharedWeatherData;
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    WeatherPage(),
-    OutfitPage(),
-    AboutPage(),
-  ];
+  void _updateWeatherData(WeatherData? weatherData) {
+    setState(() {
+      _sharedWeatherData = weatherData;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -77,6 +79,22 @@ class _BottomNavigationBarExampleState
 
   @override
   Widget build(BuildContext context) {
+    late Widget currentPage;
+
+    switch (_selectedIndex) {
+      case 0:
+        currentPage = WeatherPage(onWeatherUpdate: _updateWeatherData);
+        break;
+      case 1:
+        currentPage = OutfitPage(weatherData: _sharedWeatherData);
+        break;
+      case 2:
+        currentPage = const AboutPage();
+        break;
+      default:
+        currentPage = WeatherPage(onWeatherUpdate: _updateWeatherData);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -97,7 +115,7 @@ class _BottomNavigationBarExampleState
           ),
         ),
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: currentPage,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
