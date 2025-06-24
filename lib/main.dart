@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/weather_page.dart';
 import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
 
-void main() => runApp(const WeatherApp());
+void main() async {
+  await dotenv.load(fileName: ".env");
+  runApp(const WeatherApp());
+}
 
 class WeatherApp extends StatelessWidget {
   const WeatherApp({super.key});
