@@ -116,20 +116,6 @@ class _WeatherPageState extends State<WeatherPage> {
         child: Column(
           children: [
             // Current Weather
-            if (_isLoadingWeather)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 10),
-                      Text('Loading weather data...'),
-                    ],
-                  ),
-                ),
-              ),
-
             if (_weatherData != null)
               Card(
                 child: Padding(
@@ -144,12 +130,30 @@ class _WeatherPageState extends State<WeatherPage> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Text(
-                        '${_weatherData!.temperatureCelsius.round()}°C',
-                        style: const TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.w300,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.network(
+                            'https://openweathermap.org/img/wn/${_weatherData!.icon}@2x.png',
+                            width: 80,
+                            height: 80,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.wb_sunny,
+                                size: 80,
+                                color: Colors.orange,
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            '${_weatherData!.temperatureCelsius.round()}°C',
+                            style: const TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                        ],
                       ),
                       Text(
                         _weatherData!.description.toUpperCase(),
@@ -179,17 +183,51 @@ class _WeatherPageState extends State<WeatherPage> {
                       ),
                       const SizedBox(height: 10),
                       SizedBox(
-                        height: 200,
+                        height: 120,
                         child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
                           itemCount: _forecastData!.hourlyForecasts.length,
                           itemBuilder: (context, index) {
                             final forecast =
                                 _forecastData!.hourlyForecasts[index];
-                            return ListTile(
-                              title: Text('${forecast.date.hour}:00'),
-                              subtitle: Text(forecast.description),
-                              trailing: Text(
-                                '${forecast.temperatureCelsius.round()}°C',
+                            return Container(
+                              width: 80,
+                              margin: const EdgeInsets.only(right: 12),
+                              child: Card(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '${forecast.date.hour}:00',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        '${forecast.temperatureCelsius.round()}°C',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        forecast.description,
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             );
                           },

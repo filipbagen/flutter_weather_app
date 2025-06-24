@@ -3,6 +3,7 @@ class WeatherData {
   final double temperature;
   final String description;
   final String mainWeather;
+  final String icon;
   final double feelsLike;
   final int humidity;
   final double windSpeed;
@@ -12,6 +13,7 @@ class WeatherData {
     required this.temperature,
     required this.description,
     required this.mainWeather,
+    required this.icon,
     required this.feelsLike,
     required this.humidity,
     required this.windSpeed,
@@ -23,6 +25,7 @@ class WeatherData {
       temperature: (json['main']['temp'] as num).toDouble(),
       description: json['weather'][0]['description'],
       mainWeather: json['weather'][0]['main'],
+      icon: json['weather'][0]['icon'],
       feelsLike: (json['main']['feels_like'] as num).toDouble(),
       humidity: json['main']['humidity'],
       windSpeed: (json['wind']['speed'] as num).toDouble(),
