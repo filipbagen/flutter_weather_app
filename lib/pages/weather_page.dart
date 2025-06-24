@@ -183,7 +183,7 @@ class _WeatherPageState extends State<WeatherPage> {
                             ),
                             const SizedBox(height: 16),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.network(
                                   'https://openweathermap.org/img/wn/${_weatherData!.icon}@4x.png',
@@ -199,6 +199,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                     );
                                   },
                                 ),
+                                const SizedBox(width: 16),
                                 Column(
                                   children: [
                                     Text(
@@ -316,7 +317,10 @@ class _WeatherPageState extends State<WeatherPage> {
                                         ? Theme.of(
                                             context,
                                           ).colorScheme.primaryContainer
-                                        : Theme.of(context).colorScheme.surface,
+                                        : Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withOpacity(0.3),
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 12,
@@ -435,9 +439,10 @@ class _WeatherPageState extends State<WeatherPage> {
                                   horizontal: 16,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceVariant.withOpacity(0.3),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                      .withOpacity(0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
