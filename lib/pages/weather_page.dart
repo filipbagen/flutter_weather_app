@@ -5,25 +5,44 @@ import '../models/weather_data.dart';
 import '../models/forecast_data.dart';
 
 class WeatherPage extends StatefulWidget {
-  final Function(WeatherData?)? onWeatherUpdate;
+  final Function(WeatherData?, ForecastData?)? onWeatherUpdate;
+  final WeatherData? weatherData;
+  final ForecastData? forecastData;
+  final bool isLoading;
+  final Function(bool)? onLoadingChanged;
 
-  const WeatherPage({super.key, this.onWeatherUpdate});
+  const WeatherPage({
+    super.key,
+    this.onWeatherUpdate,
+    this.weatherData,
+    this.forecastData,
+    this.isLoading = false,
+    this.onLoadingChanged,
+  });
 
   @override
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  String _locationMessage = "Getting location...";
   double? _latitude;
   double? _longitude;
-  WeatherData? _weatherData;
-  ForecastData? _forecastData;
-  bool _isLoadingWeather = false;
 
   @override
   void initState() {
     super.initState();
+    // Only fetch weather if we don't have data yet
+    if (widget.weatherData == null) {
+      _getCurrentLocation();
+    }
+  }
+
+  // Getter methods to use either shared data or show appropriate states
+  WeatherData? get _weatherData => widget.weatherData;
+  ForecastData? get _forecastData => widget.forecastData;
+
+  // Manual refresh function
+  Future<void> _refreshWeather() async {
     _getCurrentLocation();
   }
 
@@ -33,9 +52,7 @@ class _WeatherPageState extends State<WeatherPage> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      setState(() {
-        _locationMessage = 'Location services are disabled.';
-      });
+      // Location services disabled - could show a snackbar here if needed
       return;
     }
 
@@ -43,17 +60,13 @@ class _WeatherPageState extends State<WeatherPage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        setState(() {
-          _locationMessage = 'Location permissions are denied.';
-        });
+        // Location permissions denied - could show a snackbar here if needed
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      setState(() {
-        _locationMessage = 'Location permissions are permanently denied.';
-      });
+      // Location permissions permanently denied - could show a snackbar here if needed
       return;
     }
 
@@ -61,26 +74,21 @@ class _WeatherPageState extends State<WeatherPage> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() {
-        _latitude = position.latitude;
-        _longitude = position.longitude;
-        _locationMessage = 'Location found!';
-      });
+      _latitude = position.latitude;
+      _longitude = position.longitude;
 
       _fetchWeatherData();
     } catch (e) {
-      setState(() {
-        _locationMessage = 'Error getting location: $e';
-      });
+      // Error getting location - could show a snackbar here if needed
     }
   }
 
   Future<void> _fetchWeatherData() async {
     if (_latitude == null || _longitude == null) return;
 
-    setState(() {
-      _isLoadingWeather = true;
-    });
+    if (widget.onLoadingChanged != null) {
+      widget.onLoadingChanged!(true);
+    }
 
     try {
       final weatherData = await WeatherService.getCurrentWeather(
@@ -91,20 +99,19 @@ class _WeatherPageState extends State<WeatherPage> {
         _latitude!,
         _longitude!,
       );
-      setState(() {
-        _weatherData = weatherData;
-        _forecastData = forecastData;
-        _isLoadingWeather = false;
-      });
 
       // Notify parent widget about weather data update
       if (widget.onWeatherUpdate != null) {
-        widget.onWeatherUpdate!(weatherData);
+        widget.onWeatherUpdate!(weatherData, forecastData);
+      }
+
+      if (widget.onLoadingChanged != null) {
+        widget.onLoadingChanged!(false);
       }
     } catch (e) {
-      setState(() {
-        _isLoadingWeather = false;
-      });
+      if (widget.onLoadingChanged != null) {
+        widget.onLoadingChanged!(false);
+      }
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -143,7 +150,7 @@ class _WeatherPageState extends State<WeatherPage> {
         ),
       ),
       child: RefreshIndicator(
-        onRefresh: _getCurrentLocation,
+        onRefresh: _refreshWeather,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(20.0),

@@ -4,6 +4,7 @@ import 'pages/weather_page.dart';
 import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
 import 'models/weather_data.dart';
+import 'models/forecast_data.dart';
 import 'services/ai_service.dart';
 
 void main() async {
@@ -65,18 +66,30 @@ class _BottomNavigationBarExampleState
     extends State<BottomNavigationBarExample> {
   int _selectedIndex = 0;
   WeatherData? _sharedWeatherData;
+  ForecastData? _sharedForecastData;
   String? _outfitRecommendation;
   bool _isLoadingOutfit = false;
+  bool _isLoadingWeather = false;
 
-  void _updateWeatherData(WeatherData? weatherData) async {
+  void _updateWeatherData(
+    WeatherData? weatherData,
+    ForecastData? forecastData,
+  ) async {
     setState(() {
       _sharedWeatherData = weatherData;
+      _sharedForecastData = forecastData;
     });
 
     // If we have new weather data and no recommendation yet, get one
     if (weatherData != null && _outfitRecommendation == null) {
       await _getOutfitRecommendation();
     }
+  }
+
+  void _setWeatherLoading(bool loading) {
+    setState(() {
+      _isLoadingWeather = loading;
+    });
   }
 
   Future<void> _getOutfitRecommendation() async {
@@ -125,7 +138,13 @@ class _BottomNavigationBarExampleState
 
     switch (_selectedIndex) {
       case 0:
-        currentPage = WeatherPage(onWeatherUpdate: _updateWeatherData);
+        currentPage = WeatherPage(
+          onWeatherUpdate: _updateWeatherData,
+          weatherData: _sharedWeatherData,
+          forecastData: _sharedForecastData,
+          isLoading: _isLoadingWeather,
+          onLoadingChanged: _setWeatherLoading,
+        );
         break;
       case 1:
         currentPage = OutfitPage(
@@ -139,7 +158,13 @@ class _BottomNavigationBarExampleState
         currentPage = const AboutPage();
         break;
       default:
-        currentPage = WeatherPage(onWeatherUpdate: _updateWeatherData);
+        currentPage = WeatherPage(
+          onWeatherUpdate: _updateWeatherData,
+          weatherData: _sharedWeatherData,
+          forecastData: _sharedForecastData,
+          isLoading: _isLoadingWeather,
+          onLoadingChanged: _setWeatherLoading,
+        );
     }
 
     return Scaffold(
