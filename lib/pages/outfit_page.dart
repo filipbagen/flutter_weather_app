@@ -334,44 +334,23 @@ class _OutfitPageState extends State<OutfitPage> {
               ),
             ),
 
-          // Top layer: Head (directly above shirt)
-          Positioned(
-            bottom: 235, // Adjusted from 280 to 260 (40 + 100 + 120)
-            child: Image.asset(
-              'lib/assets/images/clothing/accessories/${outfit.accessory ?? 'head_neutral'}.png',
-              height: 70,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 80,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.person, color: Colors.grey),
-                );
-              },
-            ),
-          ),
-
-          // Optional: Glasses on head (if accessory is glasses instead of head_neutral)
-          if (outfit.accessory != null && outfit.accessory!.contains('glasses'))
+          // Top layer: Accessory (head, glasses, cap, etc.)
+          if (outfit.accessory != null)
             Positioned(
-              bottom: 285, // Adjusted from 305 to 285 (260 + 25)
+              bottom: 235, // Adjusted from 280 to 260 (40 + 100 + 120)
               child: Image.asset(
                 'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
-                height: 40,
+                height: 70,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 40,
-                    width: 60,
+                    height: 80,
+                    width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.purple.withValues(alpha: 0.3),
+                      color: Colors.grey.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.visibility, color: Colors.purple),
+                    child: Icon(Icons.person, color: Colors.grey),
                   );
                 },
               ),
