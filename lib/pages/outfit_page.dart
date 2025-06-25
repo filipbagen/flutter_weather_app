@@ -36,122 +36,106 @@ class _OutfitPageState extends State<OutfitPage> {
           ],
         ),
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            // Single Combined Card
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 24),
-              child: Card(
-                elevation: 8,
-                shadowColor: Colors.black.withValues(alpha: 0.15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          if (widget.onRefresh != null) {
+            widget.onRefresh!();
+            // Add a small delay to show the refresh indicator
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              // Single Combined Card
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 24),
+                child: Card(
+                  elevation: 8,
+                  shadowColor: Colors.black.withValues(alpha: 0.15),
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Theme.of(context).colorScheme.primaryContainer,
-                        Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer.withValues(alpha: 0.8),
-                      ],
-                    ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(28.0),
-                    child: Column(
-                      children: [
-                        // Header Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'AI Outfit Assistant',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                ),
-                              ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Theme.of(context).colorScheme.primaryContainer,
+                          Theme.of(
+                            context,
+                          ).colorScheme.primaryContainer.withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(28.0),
+                      child: Column(
+                        children: [
+                          // Header Section
+                          Text(
+                            'AI Outfit Assistant',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
-                            if (!widget.isLoading &&
-                                widget.outfitRecommendation != null &&
-                                widget.weatherData != null)
-                              IconButton(
-                                onPressed: widget.onRefresh,
-                                icon: Icon(
-                                  Icons.refresh,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                ),
-                                tooltip: 'Get new recommendation',
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surface.withValues(alpha: 0.3),
-                                  padding: const EdgeInsets.all(12),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
+                          ),
+                          const SizedBox(height: 6),
 
-                        // Content based on state
-                        if (widget.weatherData == null)
-                          _buildNoWeatherContent()
-                        else if (widget.isLoading)
-                          _buildLoadingContent()
-                        else if (widget.outfitRecommendation != null)
-                          _buildRecommendationContent()
-                        else
-                          _buildErrorContent(),
-                      ],
+                          // Content based on state
+                          if (widget.weatherData == null)
+                            _buildNoWeatherContent()
+                          else if (widget.isLoading)
+                            _buildLoadingContent()
+                          else if (widget.outfitRecommendation != null)
+                            _buildRecommendationContent()
+                          else
+                            _buildErrorContent(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            if (widget.weatherData == null)
-              Container(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.wb_sunny,
-                      size: 16,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Get weather data from the Weather tab first',
-                      style: TextStyle(
+              if (widget.weatherData == null)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.wb_sunny,
+                        size: 16,
                         color: Theme.of(
                           context,
                         ).colorScheme.onSurface.withValues(alpha: 0.5),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        'Get weather data from the Weather tab first',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
@@ -238,7 +222,7 @@ class _OutfitPageState extends State<OutfitPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.lightbulb_outline,
+              Icons.arrow_downward,
               size: 16,
               color: Theme.of(
                 context,
@@ -246,7 +230,7 @@ class _OutfitPageState extends State<OutfitPage> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Tap refresh for a different suggestion',
+              'Pull down to refresh',
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(
