@@ -258,7 +258,7 @@ class _OutfitPageState extends State<OutfitPage> {
               bottom: 0,
               child: Image.asset(
                 'lib/assets/images/clothing/shoes/${outfit.shoes}.png',
-                height: 30, // Reduced from 60 to 40
+                height: 35, // Reduced from 60 to 40
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -277,7 +277,7 @@ class _OutfitPageState extends State<OutfitPage> {
           // Second layer: Pants/Bottoms (directly above shoes)
           if (outfit.bottom != null)
             Positioned(
-              bottom: 30, // Adjusted from 60 to 40 to match new shoe height
+              bottom: 35, // Adjusted from 60 to 40 to match new shoe height
               child: Image.asset(
                 'lib/assets/images/clothing/bottoms/${outfit.bottom}.png',
                 height: 150,
@@ -321,7 +321,7 @@ class _OutfitPageState extends State<OutfitPage> {
           // Top layer: Accessory (head, glasses, cap, etc.)
           if (outfit.accessory != null)
             Positioned(
-              bottom: 282, // Adjusted from 280 to 260 (40 + 100 + 120)
+              bottom: 285, // Adjusted from 280 to 260 (40 + 100 + 120)
               child: Image.asset(
                 'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
                 height: 65,

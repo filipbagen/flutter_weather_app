@@ -89,9 +89,9 @@ class AIService {
     final prompt = _buildPrompt(weatherData);
 
     // Debug: Print the prompt being sent to AI
-    print('=== AI PROMPT ===');
-    print(prompt);
-    print('=== END PROMPT ===');
+    // print('=== AI PROMPT ===');
+    // print(prompt);
+    // print('=== END PROMPT ===');
 
     final headers = {
       'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ class AIService {
         {
           'role': 'system',
           'content':
-              'You are a professional fashion stylist providing clothing recommendations. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". Always respond with valid JSON only.',
+              'You are a professional fashion stylist providing expert clothing recommendations. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". IMPORTANT: If the accessory is "head_neutral", do NOT mention it in your motivation - it is just the natural head, not an accessory. Only mention caps or sunglasses when actually recommending them. Always respond with valid JSON only.',
         },
         {'role': 'user', 'content': prompt},
       ],
@@ -115,8 +115,8 @@ class AIService {
     });
 
     try {
-      print('Making request to: $_baseUrl');
-      print('Headers: $headers');
+      // print('Making request to: $_baseUrl');
+      // print('Headers: $headers');
 
       final response = await http.post(
         Uri.parse(_baseUrl),
@@ -124,15 +124,15 @@ class AIService {
         body: body,
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // print('Response status: ${response.statusCode}');
+      // print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final recommendation =
             data['choices'][0]['message']['content'] as String;
 
-        print('AI recommendation: $recommendation');
+        // print('AI recommendation: $recommendation');
 
         // Parse JSON response from AI
         try {
@@ -144,7 +144,7 @@ class AIService {
               outfitData.bottom == null ||
               outfitData.shoes == null ||
               outfitData.accessory == null) {
-            print('AI response missing required items, using fallback');
+            // print('AI response missing required items, using fallback');
             return _getFallbackOutfit(weatherData);
           }
 
@@ -184,8 +184,24 @@ class AIService {
 
     // Replace each file name with its human-readable version
     clothingNames.forEach((fileName, humanName) {
-      result = result.replaceAll(fileName, humanName);
+      // Skip head_neutral replacement to avoid mentioning it
+      if (fileName != 'head_neutral') {
+        result = result.replaceAll(fileName, humanName);
+      }
     });
+
+    // Clean up any mentions of head_neutral or similar phrases
+    result = result
+        .replaceAll('head_neutral', '')
+        .replaceAll('neutral head accessory', '')
+        .replaceAll('neutral head', '')
+        .replaceAll('head accessory', '')
+        .replaceAll('Adding a ', '')
+        .replaceAll('adding a ', '')
+        .replaceAll(' will complete the outfit', '')
+        .replaceAll(' completes the outfit', '')
+        .replaceAll('  ', ' ') // Remove double spaces
+        .trim();
 
     return result;
   }
@@ -219,37 +235,65 @@ class AIService {
       return 'head_neutral';
     }
 
+    // Generate motivation based on accessory choice
+    String getMotivation(double temp, String condition, String accessory) {
+      String baseMotivation;
+      String accessoryText = '';
+
+      if (temp < 10) {
+        baseMotivation =
+            'Given the cold temperature of ${temp.round()}°C, I recommend a warm black winter jacket with blue jeans for necessary insulation and comfort.';
+      } else if (temp < 20) {
+        baseMotivation =
+            'For the moderate temperature of ${temp.round()}°C, I suggest this balanced outfit that offers comfort and style without overheating.';
+      } else {
+        baseMotivation =
+            'For the warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing to help you stay cool and comfortable.';
+      }
+
+      // Only add accessory text for actual accessories (not head_neutral)
+      if (accessory == 'sunglasses') {
+        accessoryText =
+            ' The sunglasses will protect your eyes from the bright conditions.';
+      } else if (accessory == 'cap_black') {
+        accessoryText = temp < 15
+            ? ' The black cap provides additional warmth and protection.'
+            : ' The black cap adds a stylish finishing touch.';
+      } else if (accessory == 'cap_blue') {
+        accessoryText =
+            ' The blue cap complements the casual, comfortable style.';
+      }
+      // No text for head_neutral - it's just the natural head
+
+      return baseMotivation + accessoryText;
+    }
+
+    String selectedAccessory = selectAccessory(temp, condition, windSpeed);
+
     // Simple fallback logic based on temperature using actual available items
     if (temp < 10) {
       return OutfitData(
         top: 'winter-jacket_black',
         bottom: 'jeans_blue',
         shoes: 'casual_white',
-        accessory: selectAccessory(temp, condition, windSpeed),
-        motivation:
-            'Given the cold temperature of ${temp.round()}°C, I recommend a warm black winter jacket with blue jeans. This combination provides necessary insulation and comfort.',
+        accessory: selectedAccessory,
+        motivation: getMotivation(temp, condition, selectedAccessory),
       );
     } else if (temp < 20) {
       return OutfitData(
         top: 'sweatshirt_beige',
         bottom: 'wide-trousers_black',
         shoes: 'casual_white',
-        accessory: selectAccessory(temp, condition, windSpeed),
-        motivation:
-            'For the moderate temperature of ${temp.round()}°C, I suggest this balanced outfit. It offers comfort and style without overheating.',
+        accessory: selectedAccessory,
+        motivation: getMotivation(temp, condition, selectedAccessory),
       );
     } else {
-      String accessory = selectAccessory(temp, condition, windSpeed);
-
-      String motivationText =
-          'For the warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing. This outfit will help you stay cool and comfortable.';
-
       return OutfitData(
         top: 'tshirt_white',
         bottom: 'linnen-shorts_beige',
         shoes: 'sandals_black',
-        accessory: accessory,
-        motivation: motivationText,
+        accessory: selectedAccessory,
+        motivation: getMotivation(temp, condition, selectedAccessory),
       );
     }
   }
@@ -290,12 +334,16 @@ BOTTOMS: $bottomsDisplay
 SHOES: $shoesDisplay
 ACCESSORIES: $accessoriesDisplay
 
-Requirements:
+CRITICAL INSTRUCTIONS:
 - Select EXACTLY 1 item from each category above
 - Use the exact file names in parentheses for your selection
+- IMPORTANT: "head_neutral" is just the natural head - NOT an accessory to mention
+- Only mention accessories in motivation if you choose cap_black, cap_blue, or sunglasses
+- If you choose head_neutral, do NOT mention head, accessories, or anything head-related
 - Consider weather appropriateness (temperature, conditions, wind, humidity)
 - Write motivation as a professional stylist using human-readable clothing names
 - Keep motivation to maximum 2 sentences
+- Focus on weather benefits and style, not head accessories unless actually choosing caps/sunglasses
 
 Return only valid JSON:
 {
@@ -303,7 +351,7 @@ Return only valid JSON:
   "bottom": "exact_file_name", 
   "shoes": "exact_file_name",
   "accessory": "exact_file_name",
-  "motivation": "Brief stylist recommendation using human-readable clothing names"
+  "motivation": "Brief stylist recommendation using human-readable clothing names (DO NOT mention head_neutral)"
 }''';
   }
 }
