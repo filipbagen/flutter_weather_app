@@ -21,6 +21,28 @@ class AIService {
     'accessories': ['glasses_sunglasses', 'head_neutral'],
   };
 
+  // Human-readable names for clothing items
+  static const Map<String, String> clothingNames = {
+    // Tops
+    'jacket_green': 'green jacket',
+    'shirt_dark': 'dark shirt',
+    'tshirt_striped': 'striped t-shirt',
+    'tshirt_white': 'white t-shirt',
+    // Bottoms
+    'chinos_beige': 'beige chinos',
+    'chinos_navy': 'navy chinos',
+    'jeans_dark': 'dark jeans',
+    'shorts_blue': 'blue shorts',
+    // Shoes
+    'sneakers_gray': 'gray sneakers',
+    'sneakers_navy': 'navy sneakers',
+    'sneakers_white': 'white sneakers',
+    'trainingshoes_red': 'red training shoes',
+    // Accessories
+    'glasses_sunglasses': 'sunglasses',
+    'head_neutral': 'neutral head',
+  };
+
   static String get _apiKey {
     final key = dotenv.env['OPENROUTER_API_KEY'];
     if (key == null || key.isEmpty) {
@@ -78,7 +100,20 @@ class AIService {
         // Parse JSON response from AI
         try {
           final outfitJson = json.decode(recommendation.trim());
-          return OutfitData.fromJson(outfitJson);
+          final outfitData = OutfitData.fromJson(outfitJson);
+
+          // Ensure head_neutral is always included
+          final updatedOutfit = OutfitData(
+            top: outfitData.top,
+            bottom: outfitData.bottom,
+            shoes: outfitData.shoes,
+            accessory: outfitData.accessory ?? 'head_neutral',
+            motivation: _humanizeMotivation(
+              outfitData.motivation ?? 'Perfect outfit for today\'s weather!',
+            ),
+          );
+
+          return updatedOutfit;
         } catch (e) {
           print('Failed to parse AI response as JSON: $e');
           // If AI doesn't return valid JSON, provide fallback outfit
@@ -97,8 +132,21 @@ class AIService {
     }
   }
 
+  // Convert file names to human-readable names in motivation text
+  static String _humanizeMotivation(String motivation) {
+    String result = motivation;
+
+    // Replace each file name with its human-readable version
+    clothingNames.forEach((fileName, humanName) {
+      result = result.replaceAll(fileName, humanName);
+    });
+
+    return result;
+  }
+
   static OutfitData _getFallbackOutfit(WeatherData weatherData) {
     final temp = weatherData.temperatureCelsius;
+    final condition = weatherData.description.toLowerCase();
 
     // Simple fallback logic based on temperature
     if (temp < 10) {
@@ -106,18 +154,31 @@ class AIService {
         top: 'jacket_green',
         bottom: 'jeans_dark',
         shoes: 'sneakers_white',
+        accessory: 'head_neutral',
+        motivation:
+            'Based on the cold temperature of ${temp.round()}°C, a warm green jacket with dark jeans provides necessary insulation and comfort.',
       );
     } else if (temp < 20) {
       return OutfitData(
         top: 'shirt_dark',
         bottom: 'chinos_navy',
         shoes: 'sneakers_gray',
+        accessory: 'head_neutral',
+        motivation:
+            'With a moderate temperature of ${temp.round()}°C, this outfit offers a good balance of comfort and style.',
       );
     } else {
+      String motivationText =
+          'Perfect warm weather at ${temp.round()}°C calls for lightweight, breathable clothing to stay cool and comfortable.';
+      if (condition.contains('rain')) {
+        motivationText += ' Consider bringing protection for potential rain.';
+      }
       return OutfitData(
         top: 'tshirt_white',
         bottom: 'shorts_blue',
         shoes: 'sneakers_white',
+        accessory: 'head_neutral',
+        motivation: motivationText,
       );
     }
   }
@@ -129,6 +190,20 @@ class AIService {
     final humidity = weatherData.humidity;
     final windSpeed = weatherData.windSpeed;
 
+    // Create human-readable lists
+    final topsDisplay = availableClothing['tops']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final bottomsDisplay = availableClothing['bottoms']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final shoesDisplay = availableClothing['shoes']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final accessoriesDisplay = availableClothing['accessories']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+
     return '''
 Based on the weather conditions, select outfit items from this specific wardrobe:
 
@@ -139,23 +214,25 @@ Weather:
 - Wind: $windSpeed m/s
 
 Available items:
-TOPS: ${availableClothing['tops']!.join(', ')}
-BOTTOMS: ${availableClothing['bottoms']!.join(', ')}
-SHOES: ${availableClothing['shoes']!.join(', ')}
-ACCESSORIES: ${availableClothing['accessories']!.join(', ')} (optional)
+TOPS: $topsDisplay
+BOTTOMS: $bottomsDisplay
+SHOES: $shoesDisplay
+ACCESSORIES: $accessoriesDisplay
 
 RULES:
-- Always select 1 top, 1 bottom, and 1 shoes
-- For cold weather (< 15°C), prefer jacket_green
-- For hot weather (> 25°C), prefer shorts and light tshirt
-- Accessory is optional
+- ALWAYS select exactly 1 top, 1 bottom, 1 shoes, and ALWAYS set accessory to "head_neutral"
+- For cold weather (< 15°C), prefer green jacket
+- For hot weather (> 25°C), prefer shorts and light t-shirt
+- In your motivation, use ONLY human-readable clothing names (e.g., "green jacket" not "jacket_green")
+- Provide a brief motivation explaining why this outfit suits the weather
 
-Return ONLY valid JSON format:
+Return ONLY valid JSON format with the exact file names from parentheses above:
 {
-  "top": "item_name",
-  "bottom": "item_name", 
-  "shoes": "item_name",
-  "accessory": "item_name"
+  "top": "exact_file_name",
+  "bottom": "exact_file_name", 
+  "shoes": "exact_file_name",
+  "accessory": "head_neutral",
+  "motivation": "Brief explanation using ONLY human-readable clothing names"
 }
 ''';
   }

@@ -221,33 +221,22 @@ class _OutfitPageState extends State<OutfitPage> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(16),
-          ),
+          // decoration: BoxDecoration(
+          //   // color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
+          //   // borderRadius: BorderRadius.circular(16),
+          // ),
           child: Column(
             children: [
-              Text(
-                'Recommended Outfit',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(height: 20),
-
               // Outfit Visualization
               _buildOutfitVisualization(),
 
               const SizedBox(height: 20),
 
-              // Outfit Details
-              _buildOutfitDetails(),
+              // AI Motivation
+              _buildMotivationText(),
             ],
           ),
         ),
-        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -277,32 +266,31 @@ class _OutfitPageState extends State<OutfitPage> {
   Widget _buildOutfitVisualization() {
     final outfit = widget.outfitRecommendation!;
 
-    return Container(
+    return SizedBox(
       height: 300,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Background figure
-          if (outfit.accessory != null && outfit.accessory!.contains('head'))
-            Positioned(
-              top: 0,
-              child: Image.asset(
-                'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
-                height: 80,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 80,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.person, color: Colors.grey),
-                  );
-                },
-              ),
+          // Head (always show, defaulting to head_neutral)
+          Positioned(
+            top: 0,
+            child: Image.asset(
+              'lib/assets/images/clothing/accessories/${outfit.accessory ?? 'head_neutral'}.png',
+              height: 80,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 80,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.person, color: Colors.grey),
+                );
+              },
             ),
+          ),
 
           // Top clothing
           if (outfit.top != null)
@@ -396,51 +384,32 @@ class _OutfitPageState extends State<OutfitPage> {
     );
   }
 
-  Widget _buildOutfitDetails() {
+  Widget _buildMotivationText() {
     final outfit = widget.outfitRecommendation!;
 
-    return Column(
-      children: [
-        if (outfit.top != null)
-          _buildOutfitItem('Top', outfit.top!, Icons.checkroom),
-        if (outfit.bottom != null)
-          _buildOutfitItem('Bottom', outfit.bottom!, Icons.straighten),
-        if (outfit.shoes != null)
-          _buildOutfitItem('Shoes', outfit.shoes!, Icons.hiking),
-        if (outfit.accessory != null)
-          _buildOutfitItem('Accessory', outfit.accessory!, Icons.star),
-      ],
-    );
-  }
-
-  Widget _buildOutfitItem(String category, String item, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(
+            context,
+          ).colorScheme.onPrimaryContainer.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: Theme.of(
-              context,
-            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-          ),
-          const SizedBox(width: 8),
           Text(
-            '$category: ',
+            outfit.motivation ?? 'Perfect outfit for today\'s weather!',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
-          Text(
-            item.replaceAll('_', ' ').toUpperCase(),
-            style: TextStyle(
-              fontSize: 14,
+              fontSize: 15,
+              height: 1.4,
               color: Theme.of(
                 context,
-              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.9),
             ),
           ),
         ],

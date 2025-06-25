@@ -3,8 +3,15 @@ class OutfitData {
   final String? bottom;
   final String? shoes;
   final String? accessory;
+  final String? motivation;
 
-  OutfitData({this.top, this.bottom, this.shoes, this.accessory});
+  OutfitData({
+    this.top,
+    this.bottom,
+    this.shoes,
+    this.accessory,
+    this.motivation,
+  });
 
   factory OutfitData.fromJson(Map<String, dynamic> json) {
     return OutfitData(
@@ -12,6 +19,7 @@ class OutfitData {
       bottom: json['bottom'],
       shoes: json['shoes'],
       accessory: json['accessory'],
+      motivation: json['motivation'],
     );
   }
 
@@ -21,6 +29,7 @@ class OutfitData {
       'bottom': bottom,
       'shoes': shoes,
       'accessory': accessory,
+      'motivation': motivation,
     };
   }
 }
