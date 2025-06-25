@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/weather_data.dart';
+import '../models/outfit_data.dart';
 
 class OutfitPage extends StatefulWidget {
   final WeatherData? weatherData;
-  final String? outfitRecommendation;
+  final OutfitData? outfitRecommendation;
   final bool isLoading;
   final VoidCallback? onRefresh;
 
@@ -216,6 +217,7 @@ class _OutfitPageState extends State<OutfitPage> {
   Widget _buildRecommendationContent() {
     return Column(
       children: [
+        // Visual Outfit Display
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(24),
@@ -223,15 +225,26 @@ class _OutfitPageState extends State<OutfitPage> {
             color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(
-            widget.outfitRecommendation!,
-            style: TextStyle(
-              fontSize: 18,
-              height: 1.6,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.w400,
-            ),
-            textAlign: TextAlign.center,
+          child: Column(
+            children: [
+              Text(
+                'Recommended Outfit',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Outfit Visualization
+              _buildOutfitVisualization(),
+
+              const SizedBox(height: 20),
+
+              // Outfit Details
+              _buildOutfitDetails(),
+            ],
           ),
         ),
         const SizedBox(height: 20),
@@ -258,6 +271,180 @@ class _OutfitPageState extends State<OutfitPage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildOutfitVisualization() {
+    final outfit = widget.outfitRecommendation!;
+
+    return Container(
+      height: 300,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background figure
+          if (outfit.accessory != null && outfit.accessory!.contains('head'))
+            Positioned(
+              top: 0,
+              child: Image.asset(
+                'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
+                height: 80,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 80,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.person, color: Colors.grey),
+                  );
+                },
+              ),
+            ),
+
+          // Top clothing
+          if (outfit.top != null)
+            Positioned(
+              top: 60,
+              child: Image.asset(
+                'lib/assets/images/clothing/tops/${outfit.top}.png',
+                height: 120,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 120,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.checkroom, color: Colors.blue),
+                  );
+                },
+              ),
+            ),
+
+          // Bottom clothing
+          if (outfit.bottom != null)
+            Positioned(
+              top: 160,
+              child: Image.asset(
+                'lib/assets/images/clothing/bottoms/${outfit.bottom}.png',
+                height: 100,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 100,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.checkroom, color: Colors.green),
+                  );
+                },
+              ),
+            ),
+
+          // Shoes
+          if (outfit.shoes != null)
+            Positioned(
+              bottom: 0,
+              child: Image.asset(
+                'lib/assets/images/clothing/shoes/${outfit.shoes}.png',
+                height: 60,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 60,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.brown.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.hiking, color: Colors.brown),
+                  );
+                },
+              ),
+            ),
+
+          // Accessories (glasses, etc.)
+          if (outfit.accessory != null && outfit.accessory!.contains('glasses'))
+            Positioned(
+              top: 30,
+              child: Image.asset(
+                'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
+                height: 40,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 40,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.visibility, color: Colors.purple),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOutfitDetails() {
+    final outfit = widget.outfitRecommendation!;
+
+    return Column(
+      children: [
+        if (outfit.top != null)
+          _buildOutfitItem('Top', outfit.top!, Icons.checkroom),
+        if (outfit.bottom != null)
+          _buildOutfitItem('Bottom', outfit.bottom!, Icons.straighten),
+        if (outfit.shoes != null)
+          _buildOutfitItem('Shoes', outfit.shoes!, Icons.hiking),
+        if (outfit.accessory != null)
+          _buildOutfitItem('Accessory', outfit.accessory!, Icons.star),
+      ],
+    );
+  }
+
+  Widget _buildOutfitItem(String category, String item, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: Theme.of(
+              context,
+            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$category: ',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+          Text(
+            item.replaceAll('_', ' ').toUpperCase(),
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(
+                context,
+              ).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

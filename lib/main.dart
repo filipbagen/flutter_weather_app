@@ -5,6 +5,7 @@ import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
 import 'models/weather_data.dart';
 import 'models/forecast_data.dart';
+import 'models/outfit_data.dart';
 import 'services/ai_service.dart';
 
 void main() async {
@@ -67,7 +68,7 @@ class _BottomNavigationBarExampleState
   int _selectedIndex = 0;
   WeatherData? _sharedWeatherData;
   ForecastData? _sharedForecastData;
-  String? _outfitRecommendation;
+  OutfitData? _outfitRecommendation;
   bool _isLoadingOutfit = false;
   bool _isLoadingWeather = false;
 
