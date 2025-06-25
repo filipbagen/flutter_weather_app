@@ -69,7 +69,7 @@ class AIService {
         {
           'role': 'system',
           'content':
-              'You are a helpful fashion assistant that selects outfit items from a specific wardrobe. Always respond with valid JSON only.',
+              'You are a professional fashion stylist providing clothing recommendations. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". Always respond with valid JSON only.',
         },
         {'role': 'user', 'content': prompt},
       ],
@@ -164,7 +164,7 @@ class AIService {
         shoes: 'sneakers_white',
         accessory: 'head_neutral',
         motivation:
-            'Based on the cold temperature of ${temp.round()}°C, a warm green jacket with dark jeans provides necessary insulation and comfort.',
+            'Given the cold temperature of ${temp.round()}°C, I recommend a warm green jacket with dark jeans for necessary insulation and comfort.',
       );
     } else if (temp < 20) {
       return OutfitData(
@@ -173,13 +173,13 @@ class AIService {
         shoes: 'sneakers_gray',
         accessory: 'head_neutral',
         motivation:
-            'With a moderate temperature of ${temp.round()}°C, this outfit offers a good balance of comfort and style.',
+            'For the moderate temperature of ${temp.round()}°C, I suggest this outfit that offers a good balance of comfort and style.',
       );
     } else {
       String motivationText =
-          'Perfect warm weather at ${temp.round()}°C calls for lightweight, breathable clothing to stay cool and comfortable.';
+          'For the warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing to help you stay cool and comfortable.';
       if (condition.contains('rain')) {
-        motivationText += ' Consider bringing protection for potential rain.';
+        motivationText += ' I also suggest considering protection for potential rain.';
       }
       return OutfitData(
         top: 'tshirt_white',
@@ -236,7 +236,12 @@ RULES:
 - For cold weather (< 15°C), prefer green jacket
 - For hot weather (> 25°C), prefer shorts and light t-shirt
 - In your motivation, use ONLY human-readable clothing names (e.g., "green jacket" not "jacket_green")
-- Provide a brief motivation explaining why this outfit suits the weather
+- IMPORTANT: Write as a professional stylist giving recommendations. Use phrases like:
+  * "I recommend..."
+  * "Given the [weather condition], I suggest..."
+  * "For today's weather, I advise..."
+  * "Considering the [temperature/humidity/wind], [clothing item] would be ideal..."
+- Avoid first-person language from the wearer's perspective (don't say "I will wear" or "This will keep me warm")
 
 Return ONLY valid JSON format with the exact file names from parentheses above:
 {
@@ -244,7 +249,7 @@ Return ONLY valid JSON format with the exact file names from parentheses above:
   "bottom": "exact_file_name", 
   "shoes": "exact_file_name",
   "accessory": "head_neutral",
-  "motivation": "Brief explanation using ONLY human-readable clothing names"
+  "motivation": "Professional stylist recommendation using human-readable clothing names"
 }
 ''';
   }
