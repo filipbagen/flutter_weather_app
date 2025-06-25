@@ -102,6 +102,14 @@ class AIService {
           final outfitJson = json.decode(recommendation.trim());
           final outfitData = OutfitData.fromJson(outfitJson);
 
+          // Validate that all required items are present
+          if (outfitData.top == null ||
+              outfitData.bottom == null ||
+              outfitData.shoes == null) {
+            print('AI response missing required items, using fallback');
+            return _getFallbackOutfit(weatherData);
+          }
+
           // Ensure head_neutral is always included
           final updatedOutfit = OutfitData(
             top: outfitData.top,
@@ -220,7 +228,11 @@ SHOES: $shoesDisplay
 ACCESSORIES: $accessoriesDisplay
 
 RULES:
-- ALWAYS select exactly 1 top, 1 bottom, 1 shoes, and ALWAYS set accessory to "head_neutral"
+- MANDATORY: You MUST select exactly 1 item from each category:
+  * 1 TOP (required - choose from jacket_green, shirt_dark, tshirt_striped, tshirt_white)
+  * 1 BOTTOM (required - choose from chinos_beige, chinos_navy, jeans_dark, shorts_blue)
+  * 1 SHOES (required - choose from sneakers_gray, sneakers_navy, sneakers_white, trainingshoes_red)
+  * ACCESSORY must always be "head_neutral"
 - For cold weather (< 15°C), prefer green jacket
 - For hot weather (> 25°C), prefer shorts and light t-shirt
 - In your motivation, use ONLY human-readable clothing names (e.g., "green jacket" not "jacket_green")

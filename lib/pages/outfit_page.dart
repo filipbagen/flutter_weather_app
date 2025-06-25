@@ -271,53 +271,32 @@ class _OutfitPageState extends State<OutfitPage> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Head (always show, defaulting to head_neutral)
-          Positioned(
-            top: 0,
-            child: Image.asset(
-              'lib/assets/images/clothing/accessories/${outfit.accessory ?? 'head_neutral'}.png',
-              height: 80,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 80,
-                  width: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.person, color: Colors.grey),
-                );
-              },
-            ),
-          ),
-
-          // Top clothing
-          if (outfit.top != null)
+          // Bottom layer: Shoes (at the very bottom)
+          if (outfit.shoes != null)
             Positioned(
-              top: 60,
+              bottom: 0,
               child: Image.asset(
-                'lib/assets/images/clothing/tops/${outfit.top}.png',
-                height: 120,
+                'lib/assets/images/clothing/shoes/${outfit.shoes}.png',
+                height: 30, // Reduced from 60 to 40
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 120,
-                    width: 100,
+                    height: 30, // Reduced from 60 to 40
+                    width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.3),
+                      color: Colors.brown.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.checkroom, color: Colors.blue),
+                    child: Icon(Icons.hiking, color: Colors.brown),
                   );
                 },
               ),
             ),
 
-          // Bottom clothing
+          // Second layer: Pants/Bottoms (directly above shoes)
           if (outfit.bottom != null)
             Positioned(
-              top: 160,
+              bottom: 30, // Adjusted from 60 to 40 to match new shoe height
               child: Image.asset(
                 'lib/assets/images/clothing/bottoms/${outfit.bottom}.png',
                 height: 100,
@@ -336,32 +315,53 @@ class _OutfitPageState extends State<OutfitPage> {
               ),
             ),
 
-          // Shoes
-          if (outfit.shoes != null)
+          // Third layer: Top/Shirt (directly above pants)
+          if (outfit.top != null)
             Positioned(
-              bottom: 0,
+              bottom: 130, // Adjusted from 160 to 140 (40 + 100)
               child: Image.asset(
-                'lib/assets/images/clothing/shoes/${outfit.shoes}.png',
-                height: 60,
+                'lib/assets/images/clothing/tops/${outfit.top}.png',
+                height: 110,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 60,
-                    width: 80,
+                    height: 120,
+                    width: 100,
                     decoration: BoxDecoration(
-                      color: Colors.brown.withValues(alpha: 0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.hiking, color: Colors.brown),
+                    child: Icon(Icons.checkroom, color: Colors.blue),
                   );
                 },
               ),
             ),
 
-          // Accessories (glasses, etc.)
+          // Top layer: Head (directly above shirt)
+          Positioned(
+            bottom: 235, // Adjusted from 280 to 260 (40 + 100 + 120)
+            child: Image.asset(
+              'lib/assets/images/clothing/accessories/${outfit.accessory ?? 'head_neutral'}.png',
+              height: 70,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 80,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.person, color: Colors.grey),
+                );
+              },
+            ),
+          ),
+
+          // Optional: Glasses on head (if accessory is glasses instead of head_neutral)
           if (outfit.accessory != null && outfit.accessory!.contains('glasses'))
             Positioned(
-              top: 30,
+              bottom: 285, // Adjusted from 305 to 285 (260 + 25)
               child: Image.asset(
                 'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
                 height: 40,
