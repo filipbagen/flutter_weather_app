@@ -105,7 +105,7 @@ class _OutfitPageState extends State<OutfitPage> {
                               ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 6),
 
                         // Content based on state
                         if (widget.weatherData == null)
@@ -220,10 +220,7 @@ class _OutfitPageState extends State<OutfitPage> {
         // Visual Outfit Display
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          // decoration: BoxDecoration(
-          //   // color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.3),
-          //   // borderRadius: BorderRadius.circular(16),
+          padding: const EdgeInsets.all(6),
           // ),
           child: Column(
             children: [
@@ -267,7 +264,7 @@ class _OutfitPageState extends State<OutfitPage> {
     final outfit = widget.outfitRecommendation!;
 
     return SizedBox(
-      height: 300,
+      height: 360,
       child: Stack(
         alignment: Alignment.center,
         children: [
