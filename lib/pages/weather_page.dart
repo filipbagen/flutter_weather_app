@@ -187,7 +187,7 @@ class _WeatherPageState extends State<WeatherPage> {
           size: 24,
           color: Theme.of(
             context,
-          ).colorScheme.onPrimaryContainer.withOpacity(0.8),
+          ).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
         ),
         const SizedBox(height: 4),
         Text(
@@ -204,7 +204,7 @@ class _WeatherPageState extends State<WeatherPage> {
             fontSize: 12,
             color: Theme.of(
               context,
-            ).colorScheme.onPrimaryContainer.withOpacity(0.7),
+            ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -219,7 +219,7 @@ class _WeatherPageState extends State<WeatherPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.primaryContainer.withOpacity(0.1),
+            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
             Theme.of(context).colorScheme.surface,
           ],
         ),
@@ -300,7 +300,7 @@ class _WeatherPageState extends State<WeatherPage> {
                               fontSize: 14,
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.7),
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -316,7 +316,7 @@ class _WeatherPageState extends State<WeatherPage> {
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Card(
                     elevation: 8,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -330,7 +330,7 @@ class _WeatherPageState extends State<WeatherPage> {
                             Theme.of(context).colorScheme.primaryContainer,
                             Theme.of(
                               context,
-                            ).colorScheme.primaryContainer.withOpacity(0.7),
+                            ).colorScheme.primaryContainer.withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -388,7 +388,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                         color: Theme.of(context)
                                             .colorScheme
                                             .onPrimaryContainer
-                                            .withOpacity(0.7),
+                                            .withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ],
@@ -404,7 +404,7 @@ class _WeatherPageState extends State<WeatherPage> {
                               decoration: BoxDecoration(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.surface.withOpacity(0.3),
+                                ).colorScheme.surface.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -427,7 +427,7 @@ class _WeatherPageState extends State<WeatherPage> {
                               decoration: BoxDecoration(
                                 color: Theme.of(
                                   context,
-                                ).colorScheme.surface.withOpacity(0.2),
+                                ).colorScheme.surface.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
@@ -466,7 +466,7 @@ class _WeatherPageState extends State<WeatherPage> {
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Card(
                     elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -520,7 +520,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                         : Theme.of(context)
                                               .colorScheme
                                               .primaryContainer
-                                              .withOpacity(0.3),
+                                              .withValues(alpha: 0.3),
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 12,
@@ -598,7 +598,7 @@ class _WeatherPageState extends State<WeatherPage> {
                   margin: const EdgeInsets.only(bottom: 24),
                   child: Card(
                     elevation: 4,
-                    shadowColor: Colors.black.withOpacity(0.1),
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -642,7 +642,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                   color: Theme.of(context)
                                       .colorScheme
                                       .primaryContainer
-                                      .withOpacity(0.5),
+                                      .withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -688,7 +688,7 @@ class _WeatherPageState extends State<WeatherPage> {
                                                 color: Theme.of(context)
                                                     .colorScheme
                                                     .onSurface
-                                                    .withOpacity(0.7),
+                                                    .withValues(alpha: 0.7),
                                               ),
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -728,7 +728,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       size: 16,
                       color: Theme.of(
                         context,
-                      ).colorScheme.onSurface.withOpacity(0.5),
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -736,7 +736,7 @@ class _WeatherPageState extends State<WeatherPage> {
                       style: TextStyle(
                         color: Theme.of(
                           context,
-                        ).colorScheme.onSurface.withOpacity(0.5),
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
                       ),
