@@ -252,17 +252,17 @@ class _OutfitPageState extends State<OutfitPage> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Bottom layer: Shoes (at the very bottom)
+          // Bottom layer
           if (outfit.shoes != null)
             Positioned(
               bottom: 0,
               child: Image.asset(
                 'lib/assets/images/clothing/shoes/${outfit.shoes}.png',
-                height: 35, // Reduced from 60 to 40
+                height: 35,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    height: 30, // Reduced from 60 to 40
+                    height: 30,
                     width: 80,
                     decoration: BoxDecoration(
                       color: Colors.brown.withValues(alpha: 0.3),
@@ -274,10 +274,10 @@ class _OutfitPageState extends State<OutfitPage> {
               ),
             ),
 
-          // Second layer: Pants/Bottoms (directly above shoes)
+          // Second layer
           if (outfit.bottom != null)
             Positioned(
-              bottom: 35, // Adjusted from 60 to 40 to match new shoe height
+              bottom: 35,
               child: Image.asset(
                 'lib/assets/images/clothing/bottoms/${outfit.bottom}.png',
                 height: 150,
@@ -296,10 +296,10 @@ class _OutfitPageState extends State<OutfitPage> {
               ),
             ),
 
-          // Third layer: Top/Shirt (directly above pants)
+          // Third layer
           if (outfit.top != null)
             Positioned(
-              bottom: 180, // Adjusted from 160 to 140 (40 + 100)
+              bottom: 180,
               child: Image.asset(
                 'lib/assets/images/clothing/tops/${outfit.top}.png',
                 height: 110,
@@ -318,10 +318,10 @@ class _OutfitPageState extends State<OutfitPage> {
               ),
             ),
 
-          // Top layer: Accessory (head, glasses, cap, etc.)
+          // Top layer
           if (outfit.accessory != null)
             Positioned(
-              bottom: 285, // Adjusted from 280 to 260 (40 + 100 + 120)
+              bottom: 285,
               child: Image.asset(
                 'lib/assets/images/clothing/accessories/${outfit.accessory}.png',
                 height: 65,

@@ -88,11 +88,6 @@ class AIService {
   ) async {
     final prompt = _buildPrompt(weatherData);
 
-    // Debug: Print the prompt being sent to AI
-    // print('=== AI PROMPT ===');
-    // print(prompt);
-    // print('=== END PROMPT ===');
-
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $_apiKey',
@@ -213,19 +208,16 @@ class AIService {
 
     // Enhanced accessory selection logic
     String selectAccessory(double temp, String condition, double windSpeed) {
-      // Priority 1: Sunny/clear weather - sunglasses
       if (condition.contains('sun') ||
           condition.contains('clear') ||
           condition.contains('bright')) {
         return 'sunglasses';
       }
 
-      // Priority 2: Cold or windy weather - cap for warmth/protection
       if (temp < 15 || windSpeed > 5) {
         return 'cap_black';
       }
 
-      // Priority 3: Casual warm weather - cap for style
       if (temp > 20 &&
           (condition.contains('cloud') || condition.contains('part'))) {
         return 'cap_blue';
