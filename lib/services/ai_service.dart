@@ -157,18 +157,15 @@ class AIService {
 
           return completeOutfit;
         } catch (e) {
-          print('Failed to parse AI response as JSON: $e');
           // If AI doesn't return valid JSON, provide fallback outfit
           return _getFallbackOutfit(weatherData);
         }
       } else {
-        print('API Error: ${response.statusCode} - ${response.body}');
         throw Exception(
           'Failed to get outfit recommendation: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
-      print('Exception in AI service: $e');
       // If API call fails completely, return fallback
       return _getFallbackOutfit(weatherData);
     }
@@ -239,17 +236,14 @@ class AIService {
 
           return completeOutfit;
         } catch (e) {
-          print('Failed to parse AI response as JSON: $e');
           return _getFallbackOutfitFromSensor(sensorData);
         }
       } else {
-        print('API Error: ${response.statusCode} - ${response.body}');
         throw Exception(
           'Failed to get outfit recommendation: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
-      print('Exception in AI service: $e');
       return _getFallbackOutfitFromSensor(sensorData);
     }
   }

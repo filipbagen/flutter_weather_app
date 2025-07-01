@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -32,6 +33,7 @@ class _WeatherPageState extends State<WeatherPage> {
   double? _longitude;
   SensorData? _sensorData;
   List<SensorData> _weatherHistory = [];
+  StreamSubscription<SensorData?>? _sensorDataSubscription;
 
   @override
   void initState() {
@@ -39,35 +41,38 @@ class _WeatherPageState extends State<WeatherPage> {
     if (widget.weatherData == null) {
       _getCurrentLocation();
     }
-    _fetchSensorData();
+    _startListeningToSensorData();
     _fetchWeatherHistory();
+  }
+
+  @override
+  void dispose() {
+    _sensorDataSubscription?.cancel();
+    super.dispose();
   }
 
   WeatherData? get _weatherData => widget.weatherData;
-  ForecastData? get _forecastData => widget.forecastData;
+
+  void _startListeningToSensorData() {
+    // Listen to real-time sensor data updates
+    _sensorDataSubscription = FirebaseService.sensorDataStream.listen((
+      sensorData,
+    ) {
+      if (mounted && sensorData != null) {
+        setState(() {
+          _sensorData = sensorData;
+        });
+      }
+    });
+  }
 
   Future<void> _refreshWeather() async {
     _getCurrentLocation();
-    _fetchSensorData();
     _fetchWeatherHistory();
-  }
-
-  Future<void> _fetchSensorData() async {
-    final sensorData = await FirebaseService.getLatestSensorData();
-    if (mounted) {
-      setState(() {
-        _sensorData = sensorData;
-      });
-    }
   }
 
   Future<void> _fetchWeatherHistory() async {
     final history = await FirebaseService.getWeatherHistory();
-
-    // Debug: Let's also check what raw data we're getting
-    final debugData = await FirebaseService.debugFirebaseData();
-    print('DEBUG: Raw Firebase data: $debugData');
-    print('DEBUG: Parsed history count: ${history.length}');
 
     if (mounted) {
       setState(() {
@@ -141,70 +146,29 @@ class _WeatherPageState extends State<WeatherPage> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-              // Debug Information Section (shown when data is missing)
-              if (_sensorData == null || _weatherHistory.isEmpty)
+              // Show loading indicator when sensor data is not available
+              if (_sensorData == null)
                 Card(
                   elevation: 4,
-                  color: Colors.orange.shade50,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: Colors.orange.shade700,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Debug Information',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.orange.shade700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (_sensorData == null)
-                          Text(
-                            '• Latest sensor data: Not available',
-                            style: TextStyle(color: Colors.orange.shade700),
-                          ),
-                        if (_sensorData != null)
-                          Text(
-                            '• Latest sensor data: Available (${_sensorData!.formattedTime})',
-                            style: TextStyle(color: Colors.green.shade700),
-                          ),
+                        const CircularProgressIndicator(),
+                        const SizedBox(width: 16),
                         Text(
-                          '• Historical data: ${_weatherHistory.length} readings found',
-                          style: TextStyle(
-                            color: _weatherHistory.isEmpty
-                                ? Colors.orange.shade700
-                                : Colors.green.shade700,
-                          ),
+                          'Loading sensor data...',
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        if (_weatherHistory.isEmpty)
-                          const Text(
-                            '• Check Firebase console: weather_readings path',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
                       ],
                     ),
                   ),
                 ),
 
-              const SizedBox(height: 24),
+              if (_sensorData == null) const SizedBox(height: 24),
 
               // Hero Sensor Data Card - The main focus
               if (_sensorData != null)
@@ -228,69 +192,74 @@ class _WeatherPageState extends State<WeatherPage> {
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(24.0),
                       child: Column(
+                      children: [
+                        Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.sensors,
-                                size: 32,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Live Sensor Data',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                ),
-                              ),
-                            ],
+                          Icon(
+                          Icons.sensors,
+                          size: 28,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                           ),
-                          const SizedBox(height: 32),
+                          const SizedBox(width: 8),
+                          Text(
+                          'Live Sensor Data',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                            context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                          ),
+                        ],
+                        ),
+                        const SizedBox(height: 32),
 
                           // Main temperature display
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.thermostat,
-                                size: 80,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onPrimaryContainer,
+                              Flexible(
+                                child: Icon(
+                                  Icons.thermostat,
+                                  size: 80,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
                               ),
                               const SizedBox(width: 20),
-                              Column(
-                                children: [
-                                  Text(
-                                    '${_sensorData!.temperature.round()}°',
-                                    style: TextStyle(
-                                      fontSize: 88,
-                                      fontWeight: FontWeight.w100,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onPrimaryContainer,
-                                      height: 1,
+                              Flexible(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      '${_sensorData!.temperature.round()}°',
+                                      style: TextStyle(
+                                        fontSize: 88,
+                                        fontWeight: FontWeight.w100,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onPrimaryContainer,
+                                        height: 1,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    'Celsius',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer
-                                          .withValues(alpha: 0.8),
+                                    Text(
+                                      'Celsius',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimaryContainer
+                                            .withValues(alpha: 0.8),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
@@ -309,17 +278,22 @@ class _WeatherPageState extends State<WeatherPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildLargeSensorDetail(
-                                  'Humidity',
-                                  '${_sensorData!.humidity}%',
-                                  Icons.water_drop,
-                                  Colors.blue,
+                                Expanded(
+                                  child: _buildLargeSensorDetail(
+                                    'Humidity',
+                                    '${_sensorData!.humidity}%',
+                                    Icons.water_drop,
+                                    Colors.blue,
+                                  ),
                                 ),
-                                _buildLargeSensorDetail(
-                                  'Light Level',
-                                  _sensorData!.lightLevel,
-                                  Icons.wb_sunny,
-                                  Colors.orange,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildLargeSensorDetail(
+                                    'Light Level',
+                                    _sensorData!.lightLevel,
+                                    Icons.wb_sunny,
+                                    Colors.orange,
+                                  ),
                                 ),
                               ],
                             ),

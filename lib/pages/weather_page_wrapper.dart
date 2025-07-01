@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/weather_data.dart';
 import '../models/forecast_data.dart';
@@ -28,35 +29,44 @@ class WeatherPageWrapper extends StatefulWidget {
 }
 
 class _WeatherPageWrapperState extends State<WeatherPageWrapper> {
-  SensorData? _currentSensorData;
+  StreamSubscription<SensorData?>? _sensorDataSubscription;
 
   @override
   void initState() {
     super.initState();
-    _fetchSensorData();
+    _startListeningToSensorData();
   }
 
-  Future<void> _fetchSensorData() async {
-    final sensorData = await FirebaseService.getLatestSensorData();
-    if (mounted && sensorData != null) {
-      setState(() {
-        _currentSensorData = sensorData;
-      });
+  @override
+  void dispose() {
+    _sensorDataSubscription?.cancel();
+    FirebaseService.stopRealtimeUpdates();
+    super.dispose();
+  }
 
-      // Notify parent about sensor data update
-      if (widget.onSensorUpdate != null) {
-        widget.onSensorUpdate!(sensorData);
+  void _startListeningToSensorData() {
+    // Start real-time updates with Firebase
+    FirebaseService.startRealtimeUpdates(
+      interval: const Duration(seconds: 30), // Update every 30 seconds
+    );
+
+    // Listen to the stream for sensor data updates
+    _sensorDataSubscription = FirebaseService.sensorDataStream.listen((
+      sensorData,
+    ) {
+      if (mounted && sensorData != null) {
+        // Notify parent about sensor data update
+        if (widget.onSensorUpdate != null) {
+          widget.onSensorUpdate!(sensorData);
+        }
       }
-    }
+    });
   }
 
   void _handleWeatherUpdate(
     WeatherData? weatherData,
     ForecastData? forecastData,
   ) {
-    // Refresh sensor data when weather updates
-    _fetchSensorData();
-
     // Pass through the weather update
     if (widget.onWeatherUpdate != null) {
       widget.onWeatherUpdate!(weatherData, forecastData);

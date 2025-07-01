@@ -75,6 +75,13 @@ class _BottomNavigationBarExampleState
   bool _isLoadingOutfit = false;
   bool _isLoadingWeather = false;
 
+  @override
+  void dispose() {
+    // Clean up Firebase resources
+    FirebaseService.dispose();
+    super.dispose();
+  }
+
   void _updateWeatherData(
     WeatherData? weatherData,
     ForecastData? forecastData,
