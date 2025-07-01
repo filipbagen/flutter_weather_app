@@ -92,19 +92,22 @@ class _OutfitPageState extends State<OutfitPage> {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          
+
                           // Data source indicator
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
-                              color: widget.sensorData != null 
-                                ? Colors.green.withValues(alpha: 0.2)
-                                : Colors.blue.withValues(alpha: 0.2),
+                              color: widget.sensorData != null
+                                  ? Colors.green.withValues(alpha: 0.2)
+                                  : Colors.blue.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: widget.sensorData != null 
-                                  ? Colors.green
-                                  : Colors.blue,
+                                color: widget.sensorData != null
+                                    ? Colors.green
+                                    : Colors.blue,
                                 width: 1,
                               ),
                             ),
@@ -112,25 +115,25 @@ class _OutfitPageState extends State<OutfitPage> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  widget.sensorData != null 
-                                    ? Icons.sensors 
-                                    : Icons.cloud,
+                                  widget.sensorData != null
+                                      ? Icons.sensors
+                                      : Icons.cloud,
                                   size: 16,
-                                  color: widget.sensorData != null 
-                                    ? Colors.green.shade700
-                                    : Colors.blue.shade700,
+                                  color: widget.sensorData != null
+                                      ? Colors.green.shade700
+                                      : Colors.blue.shade700,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  widget.sensorData != null 
-                                    ? 'Using Live Sensor Data'
-                                    : 'Using Weather API Data',
+                                  widget.sensorData != null
+                                      ? 'Using Live Sensor Data'
+                                      : 'Using Weather API Data',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
-                                    color: widget.sensorData != null 
-                                      ? Colors.green.shade700
-                                      : Colors.blue.shade700,
+                                    color: widget.sensorData != null
+                                        ? Colors.green.shade700
+                                        : Colors.blue.shade700,
                                   ),
                                 ),
                               ],
@@ -139,7 +142,8 @@ class _OutfitPageState extends State<OutfitPage> {
                           const SizedBox(height: 16),
 
                           // Content based on state
-                          if (widget.weatherData == null && widget.sensorData == null)
+                          if (widget.weatherData == null &&
+                              widget.sensorData == null)
                             _buildNoWeatherContent()
                           else if (widget.isLoading)
                             _buildLoadingContent()

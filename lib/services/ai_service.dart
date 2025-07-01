@@ -232,7 +232,8 @@ class AIService {
             shoes: outfitData.shoes,
             accessory: outfitData.accessory,
             motivation: _humanizeMotivation(
-              outfitData.motivation ?? 'Perfect outfit for today\'s conditions!',
+              outfitData.motivation ??
+                  'Perfect outfit for today\'s conditions!',
             ),
           );
 
@@ -384,7 +385,8 @@ class AIService {
         return 'cap_black';
       }
 
-      if (temp > 20 && (lightLevel.contains('dim') || lightLevel.contains('dark'))) {
+      if (temp > 20 &&
+          (lightLevel.contains('dim') || lightLevel.contains('dark'))) {
         return 'cap_blue';
       }
 
@@ -393,7 +395,11 @@ class AIService {
     }
 
     // Generate motivation based on sensor data
-    String getMotivationFromSensor(double temp, String lightLevel, String accessory) {
+    String getMotivationFromSensor(
+      double temp,
+      String lightLevel,
+      String accessory,
+    ) {
       String baseMotivation;
       String accessoryText = '';
 
@@ -433,7 +439,11 @@ class AIService {
         bottom: 'jeans_blue',
         shoes: 'casual_white',
         accessory: selectedAccessory,
-        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+        motivation: getMotivationFromSensor(
+          temp,
+          lightLevel,
+          selectedAccessory,
+        ),
       );
     } else if (temp < 20) {
       return OutfitData(
@@ -441,7 +451,11 @@ class AIService {
         bottom: 'wide-trousers_black',
         shoes: 'casual_white',
         accessory: selectedAccessory,
-        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+        motivation: getMotivationFromSensor(
+          temp,
+          lightLevel,
+          selectedAccessory,
+        ),
       );
     } else {
       return OutfitData(
@@ -449,7 +463,11 @@ class AIService {
         bottom: 'linnen-shorts_beige',
         shoes: 'sandals_black',
         accessory: selectedAccessory,
-        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+        motivation: getMotivationFromSensor(
+          temp,
+          lightLevel,
+          selectedAccessory,
+        ),
       );
     }
   }

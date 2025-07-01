@@ -86,7 +86,8 @@ class _BottomNavigationBarExampleState
 
     // If we have new weather data and no recommendation yet, get one
     // Prioritize sensor data if available, otherwise use API data
-    if ((weatherData != null || _sharedSensorData != null) && _outfitRecommendation == null) {
+    if ((weatherData != null || _sharedSensorData != null) &&
+        _outfitRecommendation == null) {
       await _getOutfitRecommendation();
     }
   }
@@ -118,7 +119,7 @@ class _BottomNavigationBarExampleState
 
     try {
       OutfitData recommendation;
-      
+
       if (_sharedSensorData != null) {
         // Use sensor data for AI recommendation (prioritized)
         recommendation = await AIService.getOutfitRecommendationFromSensor(
@@ -130,7 +131,7 @@ class _BottomNavigationBarExampleState
           _sharedWeatherData!,
         );
       }
-      
+
       setState(() {
         _outfitRecommendation = recommendation;
         _isLoadingOutfit = false;

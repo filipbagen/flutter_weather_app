@@ -42,7 +42,7 @@ class _WeatherPageWrapperState extends State<WeatherPageWrapper> {
       setState(() {
         _currentSensorData = sensorData;
       });
-      
+
       // Notify parent about sensor data update
       if (widget.onSensorUpdate != null) {
         widget.onSensorUpdate!(sensorData);
@@ -50,10 +50,13 @@ class _WeatherPageWrapperState extends State<WeatherPageWrapper> {
     }
   }
 
-  void _handleWeatherUpdate(WeatherData? weatherData, ForecastData? forecastData) {
+  void _handleWeatherUpdate(
+    WeatherData? weatherData,
+    ForecastData? forecastData,
+  ) {
     // Refresh sensor data when weather updates
     _fetchSensorData();
-    
+
     // Pass through the weather update
     if (widget.onWeatherUpdate != null) {
       widget.onWeatherUpdate!(weatherData, forecastData);
