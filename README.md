@@ -1,63 +1,38 @@
-# Flutter Weather App
+# IoT Weather App
 
-A Flutter weather application with AI-powered outfit recommendations.
+A simple Flutter app that shows live sensor data from IoT devices and provides AI-powered outfit recommendations.
 
 ## Features
 
-- **Real-time Weather**: Get current weather data and 5-day forecast using your location
-- **AI Outfit Recommendations**: Personalized clothing suggestions based on current weather conditions
-- **Beautiful UI**: Modern Material Design 3 interface with smooth animations
-- **Location-based**: Automatically detects your location for accurate weather data
+- **Live Sensor Data**: Real-time temperature, humidity, and light level from IoT sensors
+- **Weather Charts**: Historical data visualization with beautiful charts
+- **AI Outfit Suggestions**: Smart clothing recommendations based on current conditions
+- **Clean Design**: Simple, modern interface that's easy to use
 
-## Setup Instructions
+## Quick Setup
 
-### 1. Clone and Install Dependencies
-
-```bash
-flutter pub get
-```
-
-### 2. Set up API Keys
-
-1. Copy `.env.example` to `.env`:
+1. **Install Flutter dependencies**:
 
    ```bash
-   cp .env.example .env
+   flutter pub get
    ```
 
-2. Get your API keys:
+2. **Add your API keys** to `.env` file:
 
-   - **OpenWeather API**: Sign up at [openweathermap.org](https://openweathermap.org/api) for a free API key
-   - **OpenRouter API**: Get your API key at [openrouter.ai](https://openrouter.ai) for AI-powered outfit recommendations
-
-3. Add your API keys to the `.env` file:
    ```
-   OPEN_WEATHER_API_KEY=your_actual_openweather_key
-   OPENROUTER_API_KEY=your_actual_openrouter_key
+   FIREBASE_URL=your_firebase_database_url
+   FIREBASE_SECRET=your_firebase_secret
+   OPEN_WEATHER_API_KEY=your_weather_api_key
+   OPENROUTER_API_KEY=your_ai_api_key
    ```
 
-### 3. Run the App
+3. **Run the app**:
+   ```bash
+   flutter run
+   ```
 
-```bash
-flutter run
-```
+## How It Works
 
-## App Structure
+The app connects to Firebase Realtime Database to get live sensor readings from IoT devices. It displays this data in a beautiful interface and uses AI to suggest appropriate clothing based on the current conditions.
 
-- `lib/pages/weather_page.dart` - Main weather display with current conditions and forecast
-- `lib/pages/outfit_page.dart` - AI-powered outfit recommendations
-- `lib/services/weather_service.dart` - OpenWeather API integration
-- `lib/services/ai_service.dart` - OpenAI API integration for outfit suggestions
-- `lib/models/` - Data models for weather and forecast data
-
-## Permissions
-
-The app requires location permissions to provide accurate weather data for your current location.
-
-## Getting Started with Flutter
-
-This project is a great starting point for learning Flutter development:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-- [Flutter documentation](https://docs.flutter.dev/)
+Perfect for learning Flutter, Firebase, and IoT integration!

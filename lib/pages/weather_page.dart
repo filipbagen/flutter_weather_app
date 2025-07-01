@@ -194,31 +194,31 @@ class _WeatherPageState extends State<WeatherPage> {
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
-                      children: [
-                        Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                          Icons.sensors,
-                          size: 28,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.sensors,
+                                size: 28,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Live Sensor Data',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                          'Live Sensor Data',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(
-                            context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
-                          ),
-                        ],
-                        ),
-                        const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
                           // Main temperature display
                           Row(
@@ -514,10 +514,13 @@ class _WeatherPageState extends State<WeatherPage> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
           ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         Text(
           label,
@@ -549,7 +552,9 @@ class _WeatherPageState extends State<WeatherPage> {
   LineChartData _buildTemperatureChart() {
     if (_weatherHistory.isEmpty) return LineChartData();
 
-    final spots = _weatherHistory.asMap().entries.map((entry) {
+    // Reverse the order so most recent data is on the right
+    final reversedHistory = _weatherHistory.reversed.toList();
+    final spots = reversedHistory.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.temperature);
     }).toList();
 
@@ -560,16 +565,26 @@ class _WeatherPageState extends State<WeatherPage> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 40,
+            interval: 1, // Show only one label per degree
             getTitlesWidget: (value, meta) => Text('${value.toInt()}°'),
           ),
         ),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
+            interval: reversedHistory.length > 5
+                ? (reversedHistory.length / 3).ceilToDouble()
+                : 1,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              if (index >= 0 && index < _weatherHistory.length) {
-                return Text(_weatherHistory[index].formattedTime);
+              if (index >= 0 && index < reversedHistory.length) {
+                // Show only hour:minute for less crowding
+                final time = reversedHistory[index].formattedTime;
+                final timeParts = time.split(' ');
+                return Text(
+                  timeParts.length > 1 ? timeParts[1] : time,
+                  style: const TextStyle(fontSize: 10),
+                );
               }
               return const Text('');
             },
@@ -581,10 +596,31 @@ class _WeatherPageState extends State<WeatherPage> {
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
+      lineTouchData: LineTouchData(
+        enabled: true,
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+            return touchedBarSpots.map((barSpot) {
+              final index = barSpot.x.toInt();
+              if (index >= 0 && index < reversedHistory.length) {
+                final sensorData = reversedHistory[index];
+                return LineTooltipItem(
+                  '${sensorData.temperature.toStringAsFixed(1)}°C\n${sensorData.formattedTime}',
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              }
+              return null;
+            }).toList();
+          },
+        ),
+      ),
       lineBarsData: [
         LineChartBarData(
           spots: spots,
-          isCurved: true,
+          isCurved: false,
           color: Colors.red,
           barWidth: 3,
           dotData: const FlDotData(show: true),
@@ -596,9 +632,16 @@ class _WeatherPageState extends State<WeatherPage> {
   LineChartData _buildHumidityChart() {
     if (_weatherHistory.isEmpty) return LineChartData();
 
-    final spots = _weatherHistory.asMap().entries.map((entry) {
+    // Reverse the order so most recent data is on the right
+    final reversedHistory = _weatherHistory.reversed.toList();
+    final spots = reversedHistory.asMap().entries.map((entry) {
       return FlSpot(entry.key.toDouble(), entry.value.humidity.toDouble());
     }).toList();
+
+    // Get unique humidity values for y-axis labels
+    final uniqueHumidityValues =
+        reversedHistory.map((data) => data.humidity.toDouble()).toSet().toList()
+          ..sort();
 
     return LineChartData(
       gridData: const FlGridData(show: true),
@@ -607,16 +650,31 @@ class _WeatherPageState extends State<WeatherPage> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 40,
-            getTitlesWidget: (value, meta) => Text('${value.toInt()}%'),
+            getTitlesWidget: (value, meta) {
+              // Only show labels for unique humidity values present in data
+              if (uniqueHumidityValues.contains(value)) {
+                return Text('${value.toInt()}%');
+              }
+              return const Text('');
+            },
           ),
         ),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
+            interval: reversedHistory.length > 5
+                ? (reversedHistory.length / 3).ceilToDouble()
+                : 1,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              if (index >= 0 && index < _weatherHistory.length) {
-                return Text(_weatherHistory[index].formattedTime);
+              if (index >= 0 && index < reversedHistory.length) {
+                // Show only hour:minute for less crowding
+                final time = reversedHistory[index].formattedTime;
+                final timeParts = time.split(' ');
+                return Text(
+                  timeParts.length > 1 ? timeParts[1] : time,
+                  style: const TextStyle(fontSize: 10),
+                );
               }
               return const Text('');
             },
@@ -628,10 +686,31 @@ class _WeatherPageState extends State<WeatherPage> {
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
       ),
       borderData: FlBorderData(show: true),
+      lineTouchData: LineTouchData(
+        enabled: true,
+        touchTooltipData: LineTouchTooltipData(
+          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+            return touchedBarSpots.map((barSpot) {
+              final index = barSpot.x.toInt();
+              if (index >= 0 && index < reversedHistory.length) {
+                final sensorData = reversedHistory[index];
+                return LineTooltipItem(
+                  '${sensorData.humidity}%\n${sensorData.formattedTime}',
+                  const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              }
+              return null;
+            }).toList();
+          },
+        ),
+      ),
       lineBarsData: [
         LineChartBarData(
           spots: spots,
-          isCurved: true,
+          isCurved: false,
           color: Colors.blue,
           barWidth: 3,
           dotData: const FlDotData(show: true),

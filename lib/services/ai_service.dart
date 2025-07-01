@@ -111,24 +111,16 @@ class AIService {
     });
 
     try {
-      // print('Making request to: $_baseUrl');
-      // print('Headers: $headers');
-
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: headers,
         body: body,
       );
 
-      // print('Response status: ${response.statusCode}');
-      // print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final recommendation =
             data['choices'][0]['message']['content'] as String;
-
-        // print('AI recommendation: $recommendation');
 
         // Parse JSON response from AI
         try {
@@ -140,7 +132,6 @@ class AIService {
               outfitData.bottom == null ||
               outfitData.shoes == null ||
               outfitData.accessory == null) {
-            // print('AI response missing required items, using fallback');
             return _getFallbackOutfit(weatherData);
           }
 
