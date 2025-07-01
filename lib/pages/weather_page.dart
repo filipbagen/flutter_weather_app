@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/weather_service.dart';
+import '../services/firebase_service.dart';
 import '../models/weather_data.dart';
 import '../models/forecast_data.dart';
+import '../models/sensor_data.dart';
 
 class WeatherPage extends StatefulWidget {
   final Function(WeatherData?, ForecastData?)? onWeatherUpdate;
@@ -27,6 +29,8 @@ class WeatherPage extends StatefulWidget {
 class _WeatherPageState extends State<WeatherPage> {
   double? _latitude;
   double? _longitude;
+  SensorData? _sensorData;
+  bool _sensorDataLoading = false;
 
   @override
   void initState() {
@@ -35,6 +39,8 @@ class _WeatherPageState extends State<WeatherPage> {
     if (widget.weatherData == null) {
       _getCurrentLocation();
     }
+    // Always try to fetch sensor data
+    _fetchSensorData();
   }
 
   // Getter methods to use either shared data or show appropriate states
@@ -44,6 +50,36 @@ class _WeatherPageState extends State<WeatherPage> {
   // Manual refresh function
   Future<void> _refreshWeather() async {
     _getCurrentLocation();
+    _fetchSensorData();
+  }
+
+  Future<void> _fetchSensorData() async {
+    setState(() {
+      _sensorDataLoading = true;
+    });
+
+    try {
+      final sensorData = await FirebaseService.getLatestSensorData();
+      if (mounted) {
+        setState(() {
+          _sensorData = sensorData;
+          _sensorDataLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _sensorDataLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to fetch sensor data: $e'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -211,6 +247,82 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
+  Widget _buildSensorDetail(
+    String label,
+    String value,
+    IconData icon,
+    String? comparison,
+  ) {
+    return Column(
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: Theme.of(
+            context,
+          ).colorScheme.onSecondaryContainer.withValues(alpha: 0.8),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(
+              context,
+            ).colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+          ),
+        ),
+        if (comparison != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            comparison,
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSecondaryContainer.withValues(alpha: 0.6),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  String? _getSensorTempComparison() {
+    if (_sensorData == null || _weatherData == null) return null;
+
+    final diff = _sensorData!.temperature - _weatherData!.temperatureCelsius;
+    if (diff.abs() < 1) {
+      return 'Similar to API';
+    } else if (diff > 0) {
+      return '${diff.round()}°C warmer';
+    } else {
+      return '${diff.abs().round()}°C cooler';
+    }
+  }
+
+  String? _getHumidityComparison() {
+    if (_sensorData == null || _weatherData == null) return null;
+
+    final diff = _sensorData!.humidity - _weatherData!.humidity;
+    if (diff.abs() < 5) {
+      return 'Similar to API';
+    } else if (diff > 0) {
+      return '${diff}% higher';
+    } else {
+      return '${diff.abs()}% lower';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -219,7 +331,9 @@ class _WeatherPageState extends State<WeatherPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.1),
+            Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.1),
             Theme.of(context).colorScheme.surface,
           ],
         ),
@@ -328,9 +442,8 @@ class _WeatherPageState extends State<WeatherPage> {
                           end: Alignment.bottomRight,
                           colors: [
                             Theme.of(context).colorScheme.primaryContainer,
-                            Theme.of(
-                              context,
-                            ).colorScheme.primaryContainer.withValues(alpha: 0.7),
+                            Theme.of(context).colorScheme.primaryContainer
+                                .withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -452,6 +565,197 @@ class _WeatherPageState extends State<WeatherPage> {
                                 ],
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Sensor Data Card
+              if (_sensorData != null || _sensorDataLoading)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  child: Card(
+                    elevation: 4,
+                    shadowColor: Colors.black.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Theme.of(context).colorScheme.secondaryContainer,
+                            Theme.of(context).colorScheme.secondaryContainer
+                                .withValues(alpha: 0.7),
+                          ],
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.sensors,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSecondaryContainer,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Local Sensor Data',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSecondaryContainer,
+                                  ),
+                                ),
+                                const Spacer(),
+                                if (_sensorData != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _sensorData!.isDataFresh
+                                          ? Colors.green.withValues(alpha: 0.2)
+                                          : Colors.orange.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      _sensorData!.isDataFresh
+                                          ? 'Fresh'
+                                          : 'Outdated',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: _sensorData!.isDataFresh
+                                            ? Colors.green.shade700
+                                            : Colors.orange.shade700,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            if (_sensorDataLoading)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            else if (_sensorData != null) ...[
+                              // Sensor readings
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSensorDetail(
+                                      'Temperature',
+                                      '${_sensorData!.temperature.round()}°C',
+                                      Icons.thermostat,
+                                      _getSensorTempComparison(),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _buildSensorDetail(
+                                      'Humidity',
+                                      '${_sensorData!.humidity}%',
+                                      Icons.water_drop,
+                                      _getHumidityComparison(),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _buildSensorDetail(
+                                      'Light Level',
+                                      _sensorData!.lightLevel,
+                                      Icons.wb_sunny,
+                                      null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Additional info
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.surface.withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Last Updated: ${_sensorData!.formattedDateTime}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSecondaryContainer
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Light Description: ${_sensorData!.lightDescription}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSecondaryContainer
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                    if (_getSensorTempComparison() != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _getSensorTempComparison()!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSecondaryContainer,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ] else
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Text(
+                                    'Sensor data unavailable',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSecondaryContainer
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
