@@ -19,4 +19,12 @@ class SensorData {
       timestamp: json['timestamp'] as int,
     );
   }
+
+  DateTime get dateTime =>
+      DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+
+  String get formattedTime =>
+      '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+
+  String get formattedDate => '${dateTime.day}/${dateTime.month}';
 }

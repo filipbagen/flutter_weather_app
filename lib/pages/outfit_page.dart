@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/weather_data.dart';
+import '../models/sensor_data.dart';
 import '../models/outfit_data.dart';
 
 class OutfitPage extends StatefulWidget {
   final WeatherData? weatherData;
+  final SensorData? sensorData;
   final OutfitData? outfitRecommendation;
   final bool isLoading;
   final VoidCallback? onRefresh;
@@ -11,6 +13,7 @@ class OutfitPage extends StatefulWidget {
   const OutfitPage({
     super.key,
     this.weatherData,
+    this.sensorData,
     this.outfitRecommendation,
     this.isLoading = false,
     this.onRefresh,
@@ -89,9 +92,54 @@ class _OutfitPageState extends State<OutfitPage> {
                             ),
                           ),
                           const SizedBox(height: 6),
+                          
+                          // Data source indicator
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: widget.sensorData != null 
+                                ? Colors.green.withValues(alpha: 0.2)
+                                : Colors.blue.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: widget.sensorData != null 
+                                  ? Colors.green
+                                  : Colors.blue,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  widget.sensorData != null 
+                                    ? Icons.sensors 
+                                    : Icons.cloud,
+                                  size: 16,
+                                  color: widget.sensorData != null 
+                                    ? Colors.green.shade700
+                                    : Colors.blue.shade700,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  widget.sensorData != null 
+                                    ? 'Using Live Sensor Data'
+                                    : 'Using Weather API Data',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: widget.sensorData != null 
+                                      ? Colors.green.shade700
+                                      : Colors.blue.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
 
                           // Content based on state
-                          if (widget.weatherData == null)
+                          if (widget.weatherData == null && widget.sensorData == null)
                             _buildNoWeatherContent()
                           else if (widget.isLoading)
                             _buildLoadingContent()
@@ -106,7 +154,7 @@ class _OutfitPageState extends State<OutfitPage> {
                 ),
               ),
 
-              if (widget.weatherData == null)
+              if (widget.weatherData == null && widget.sensorData == null)
                 Container(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -153,7 +201,7 @@ class _OutfitPageState extends State<OutfitPage> {
         ),
         const SizedBox(height: 16),
         Text(
-          'No weather data available',
+          'No weather or sensor data available',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w500,
@@ -163,7 +211,7 @@ class _OutfitPageState extends State<OutfitPage> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Please visit the Weather tab to load current weather conditions first.',
+          'Please visit the Weather tab to load current weather conditions and sensor data first.',
           style: TextStyle(
             fontSize: 16,
             color: Theme.of(

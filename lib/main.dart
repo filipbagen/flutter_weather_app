@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'pages/weather_page.dart';
+import 'pages/weather_page_wrapper.dart';
 import 'pages/outfit_page.dart';
 import 'pages/about_page.dart';
 import 'models/weather_data.dart';
 import 'models/forecast_data.dart';
 import 'models/outfit_data.dart';
+import 'models/sensor_data.dart';
 import 'services/ai_service.dart';
+import 'services/firebase_service.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -68,6 +70,7 @@ class _BottomNavigationBarExampleState
   int _selectedIndex = 0;
   WeatherData? _sharedWeatherData;
   ForecastData? _sharedForecastData;
+  SensorData? _sharedSensorData;
   OutfitData? _outfitRecommendation;
   bool _isLoadingOutfit = false;
   bool _isLoadingWeather = false;
@@ -82,7 +85,19 @@ class _BottomNavigationBarExampleState
     });
 
     // If we have new weather data and no recommendation yet, get one
-    if (weatherData != null && _outfitRecommendation == null) {
+    // Prioritize sensor data if available, otherwise use API data
+    if ((weatherData != null || _sharedSensorData != null) && _outfitRecommendation == null) {
+      await _getOutfitRecommendation();
+    }
+  }
+
+  void _updateSensorData(SensorData? sensorData) async {
+    setState(() {
+      _sharedSensorData = sensorData;
+    });
+
+    // If we have new sensor data, refresh the outfit recommendation
+    if (sensorData != null) {
       await _getOutfitRecommendation();
     }
   }
@@ -94,16 +109,28 @@ class _BottomNavigationBarExampleState
   }
 
   Future<void> _getOutfitRecommendation() async {
-    if (_sharedWeatherData == null) return;
+    // Prioritize sensor data if available, otherwise use API data
+    if (_sharedSensorData == null && _sharedWeatherData == null) return;
 
     setState(() {
       _isLoadingOutfit = true;
     });
 
     try {
-      final recommendation = await AIService.getOutfitRecommendation(
-        _sharedWeatherData!,
-      );
+      OutfitData recommendation;
+      
+      if (_sharedSensorData != null) {
+        // Use sensor data for AI recommendation (prioritized)
+        recommendation = await AIService.getOutfitRecommendationFromSensor(
+          _sharedSensorData!,
+        );
+      } else {
+        // Fallback to weather API data
+        recommendation = await AIService.getOutfitRecommendation(
+          _sharedWeatherData!,
+        );
+      }
+      
       setState(() {
         _outfitRecommendation = recommendation;
         _isLoadingOutfit = false;
@@ -139,8 +166,9 @@ class _BottomNavigationBarExampleState
 
     switch (_selectedIndex) {
       case 0:
-        currentPage = WeatherPage(
+        currentPage = WeatherPageWrapper(
           onWeatherUpdate: _updateWeatherData,
+          onSensorUpdate: _updateSensorData,
           weatherData: _sharedWeatherData,
           forecastData: _sharedForecastData,
           isLoading: _isLoadingWeather,
@@ -150,6 +178,7 @@ class _BottomNavigationBarExampleState
       case 1:
         currentPage = OutfitPage(
           weatherData: _sharedWeatherData,
+          sensorData: _sharedSensorData,
           outfitRecommendation: _outfitRecommendation,
           isLoading: _isLoadingOutfit,
           onRefresh: _refreshOutfitRecommendation,
@@ -159,8 +188,9 @@ class _BottomNavigationBarExampleState
         currentPage = const AboutPage();
         break;
       default:
-        currentPage = WeatherPage(
+        currentPage = WeatherPageWrapper(
           onWeatherUpdate: _updateWeatherData,
+          onSensorUpdate: _updateSensorData,
           weatherData: _sharedWeatherData,
           forecastData: _sharedForecastData,
           isLoading: _isLoadingWeather,

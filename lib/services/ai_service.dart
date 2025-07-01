@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/weather_data.dart';
+import '../models/sensor_data.dart';
 import '../models/outfit_data.dart';
 
 class AIService {
@@ -173,6 +174,85 @@ class AIService {
     }
   }
 
+  static Future<OutfitData> getOutfitRecommendationFromSensor(
+    SensorData sensorData,
+  ) async {
+    final prompt = _buildPromptFromSensor(sensorData);
+
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $_apiKey',
+      'HTTP-Referer': 'https://flutter-weather-app.com',
+      'X-Title': 'Flutter Weather App',
+    };
+
+    final body = json.encode({
+      'model': 'meta-llama/llama-3.2-3b-instruct:free',
+      'messages': [
+        {
+          'role': 'system',
+          'content':
+              'You are a professional fashion stylist providing expert clothing recommendations based on live sensor data. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". IMPORTANT: If the accessory is "head_neutral", do NOT mention it in your motivation - it is just the natural head, not an accessory. Only mention caps or sunglasses when actually recommending them. Always respond with valid JSON only.',
+        },
+        {'role': 'user', 'content': prompt},
+      ],
+      'max_tokens': 200,
+      'temperature': 0.3,
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(_baseUrl),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final recommendation =
+            data['choices'][0]['message']['content'] as String;
+
+        // Parse JSON response from AI
+        try {
+          final outfitJson = json.decode(recommendation.trim());
+          final outfitData = OutfitData.fromJson(outfitJson);
+
+          // Validate that all required items are present
+          if (outfitData.top == null ||
+              outfitData.bottom == null ||
+              outfitData.shoes == null ||
+              outfitData.accessory == null) {
+            return _getFallbackOutfitFromSensor(sensorData);
+          }
+
+          // Return the complete outfit as provided by AI
+          final completeOutfit = OutfitData(
+            top: outfitData.top,
+            bottom: outfitData.bottom,
+            shoes: outfitData.shoes,
+            accessory: outfitData.accessory,
+            motivation: _humanizeMotivation(
+              outfitData.motivation ?? 'Perfect outfit for today\'s conditions!',
+            ),
+          );
+
+          return completeOutfit;
+        } catch (e) {
+          print('Failed to parse AI response as JSON: $e');
+          return _getFallbackOutfitFromSensor(sensorData);
+        }
+      } else {
+        print('API Error: ${response.statusCode} - ${response.body}');
+        throw Exception(
+          'Failed to get outfit recommendation: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      print('Exception in AI service: $e');
+      return _getFallbackOutfitFromSensor(sensorData);
+    }
+  }
+
   // Convert file names to human-readable names in motivation text
   static String _humanizeMotivation(String motivation) {
     String result = motivation;
@@ -290,6 +370,90 @@ class AIService {
     }
   }
 
+  static OutfitData _getFallbackOutfitFromSensor(SensorData sensorData) {
+    final temp = sensorData.temperature;
+    final lightLevel = sensorData.lightLevel.toLowerCase();
+
+    // Enhanced accessory selection logic for sensor data
+    String selectAccessory(double temp, String lightLevel) {
+      if (lightLevel.contains('bright') || lightLevel.contains('very bright')) {
+        return 'sunglasses';
+      }
+
+      if (temp < 15) {
+        return 'cap_black';
+      }
+
+      if (temp > 20 && (lightLevel.contains('dim') || lightLevel.contains('dark'))) {
+        return 'cap_blue';
+      }
+
+      // Default: neutral for moderate conditions
+      return 'head_neutral';
+    }
+
+    // Generate motivation based on sensor data
+    String getMotivationFromSensor(double temp, String lightLevel, String accessory) {
+      String baseMotivation;
+      String accessoryText = '';
+
+      if (temp < 10) {
+        baseMotivation =
+            'Given the cold sensor reading of ${temp.round()}°C, I recommend a warm black winter jacket with blue jeans for necessary insulation and comfort.';
+      } else if (temp < 20) {
+        baseMotivation =
+            'For the moderate temperature of ${temp.round()}°C from your sensor, I suggest this balanced outfit that offers comfort and style.';
+      } else {
+        baseMotivation =
+            'With your sensor showing warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing to help you stay cool.';
+      }
+
+      // Only add accessory text for actual accessories (not head_neutral)
+      if (accessory == 'sunglasses') {
+        accessoryText =
+            ' The sunglasses will protect your eyes from the bright light conditions detected.';
+      } else if (accessory == 'cap_black') {
+        accessoryText = temp < 15
+            ? ' The black cap provides additional warmth for the cooler temperature.'
+            : ' The black cap adds a stylish finishing touch.';
+      } else if (accessory == 'cap_blue') {
+        accessoryText =
+            ' The blue cap complements the casual, comfortable style.';
+      }
+
+      return baseMotivation + accessoryText;
+    }
+
+    String selectedAccessory = selectAccessory(temp, lightLevel);
+
+    // Simple fallback logic based on sensor temperature
+    if (temp < 10) {
+      return OutfitData(
+        top: 'winter-jacket_black',
+        bottom: 'jeans_blue',
+        shoes: 'casual_white',
+        accessory: selectedAccessory,
+        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+      );
+    } else if (temp < 20) {
+      return OutfitData(
+        top: 'sweatshirt_beige',
+        bottom: 'wide-trousers_black',
+        shoes: 'casual_white',
+        accessory: selectedAccessory,
+        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+      );
+    } else {
+      return OutfitData(
+        top: 'tshirt_white',
+        bottom: 'linnen-shorts_beige',
+        shoes: 'sandals_black',
+        accessory: selectedAccessory,
+        motivation: getMotivationFromSensor(temp, lightLevel, selectedAccessory),
+      );
+    }
+  }
+
   static String _buildPrompt(WeatherData weatherData) {
     final temp = weatherData.temperatureCelsius.round();
     final feelsLike = weatherData.feelsLikeCelsius.round();
@@ -344,6 +508,60 @@ Return only valid JSON:
   "shoes": "exact_file_name",
   "accessory": "exact_file_name",
   "motivation": "Brief stylist recommendation using human-readable clothing names (DO NOT mention head_neutral)"
+}''';
+  }
+
+  static String _buildPromptFromSensor(SensorData sensorData) {
+    final temp = sensorData.temperature.round();
+    final humidity = sensorData.humidity;
+    final lightLevel = sensorData.lightLevel;
+
+    // Create human-readable lists
+    final topsDisplay = availableClothing['tops']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final bottomsDisplay = availableClothing['bottoms']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final shoesDisplay = availableClothing['shoes']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+    final accessoriesDisplay = availableClothing['accessories']!
+        .map((item) => '${clothingNames[item]} ($item)')
+        .join(', ');
+
+    return '''
+Select one outfit item from each category based on these LIVE SENSOR conditions:
+
+Live Sensor Data:
+- Temperature: $temp°C (from local sensor)
+- Humidity: $humidity% (from local sensor)
+- Light Level: $lightLevel (from local sensor)
+
+Available Wardrobe:
+TOPS: $topsDisplay
+BOTTOMS: $bottomsDisplay
+SHOES: $shoesDisplay
+ACCESSORIES: $accessoriesDisplay
+
+CRITICAL INSTRUCTIONS:
+- Select EXACTLY 1 item from each category above
+- Use the exact file names in parentheses for your selection
+- IMPORTANT: "head_neutral" is just the natural head - NOT an accessory to mention
+- Only mention accessories in motivation if you choose cap_black, cap_blue, or sunglasses
+- If you choose head_neutral, do NOT mention head, accessories, or anything head-related
+- Consider sensor readings (temperature, humidity, light level) for appropriateness
+- Write motivation as a professional stylist using human-readable clothing names
+- Keep motivation to maximum 2 sentences
+- Focus on sensor-based benefits and style, not head accessories unless actually choosing caps/sunglasses
+
+Return only valid JSON:
+{
+  "top": "exact_file_name",
+  "bottom": "exact_file_name", 
+  "shoes": "exact_file_name",
+  "accessory": "exact_file_name",
+  "motivation": "Brief stylist recommendation based on live sensor data using human-readable clothing names (DO NOT mention head_neutral)"
 }''';
   }
 }
