@@ -180,7 +180,7 @@ class AIService {
         {
           'role': 'system',
           'content':
-              'You are a professional fashion stylist providing expert clothing recommendations based on live sensor data. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". IMPORTANT: If the accessory is "head_neutral", do NOT mention it in your motivation - it is just the natural head, not an accessory. Only mention caps or sunglasses when actually recommending them. Always respond with valid JSON only.',
+              'You are a professional fashion stylist providing expert clothing recommendations based on live weather data. Write as a stylist giving advice to a client, using phrases like "I recommend" or "I suggest". IMPORTANT: If the accessory is "head_neutral", do NOT mention it in your motivation - it is just the natural head, not an accessory. Only mention caps or sunglasses when actually recommending them. Always respond with valid JSON only.',
         },
         {'role': 'user', 'content': prompt},
       ],
@@ -390,19 +390,19 @@ class AIService {
 
       if (temp < 10) {
         baseMotivation =
-            'Given the cold sensor reading of ${temp.round()}°C, I recommend a warm black winter jacket with blue jeans for necessary insulation and comfort.';
+            'Given the cold reading of ${temp.round()}°C, I recommend a warm black winter jacket with blue jeans for necessary insulation and comfort.';
       } else if (temp < 20) {
         baseMotivation =
-            'For the moderate temperature of ${temp.round()}°C from your sensor, I suggest this balanced outfit that offers comfort and style.';
+            'For the moderate temperature of ${temp.round()}°C, I suggest this balanced outfit that offers comfort and style.';
       } else {
         baseMotivation =
-            'With your sensor showing warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing to help you stay cool.';
+            'With the warm weather at ${temp.round()}°C, I recommend lightweight, breathable clothing to help you stay cool.';
       }
 
       // Only add accessory text for actual accessories (not head_neutral)
       if (accessory == 'sunglasses') {
         accessoryText =
-            ' The sunglasses will protect your eyes from the bright light conditions detected.';
+            ' The sunglasses will protect your eyes from the bright light conditions.';
       } else if (accessory == 'cap_black') {
         accessoryText = temp < 15
             ? ' The black cap provides additional warmth for the cooler temperature.'
@@ -534,12 +534,12 @@ Return only valid JSON:
         .join(', ');
 
     return '''
-Select one outfit item from each category based on these LIVE SENSOR conditions:
+Select one outfit item from each category based on these current conditions:
 
-Live Sensor Data:
-- Temperature: $temp°C (from local sensor)
-- Humidity: $humidity% (from local sensor)
-- Light Level: $lightLevel (from local sensor)
+Current Weather Data:
+- Temperature: $temp°C (live reading)
+- Humidity: $humidity% (live reading)
+- Light Level: $lightLevel (live reading)
 
 Available Wardrobe:
 TOPS: $topsDisplay
@@ -553,10 +553,10 @@ CRITICAL INSTRUCTIONS:
 - IMPORTANT: "head_neutral" is just the natural head - NOT an accessory to mention
 - Only mention accessories in motivation if you choose cap_black, cap_blue, or sunglasses
 - If you choose head_neutral, do NOT mention head, accessories, or anything head-related
-- Consider sensor readings (temperature, humidity, light level) for appropriateness
+- Consider current readings (temperature, humidity, light level) for appropriateness
 - Write motivation as a professional stylist using human-readable clothing names
 - Keep motivation to maximum 2 sentences
-- Focus on sensor-based benefits and style, not head accessories unless actually choosing caps/sunglasses
+- Focus on weather benefits and style, not head accessories unless actually choosing caps/sunglasses
 
 Return only valid JSON:
 {
@@ -564,7 +564,7 @@ Return only valid JSON:
   "bottom": "exact_file_name", 
   "shoes": "exact_file_name",
   "accessory": "exact_file_name",
-  "motivation": "Brief stylist recommendation based on live sensor data using human-readable clothing names (DO NOT mention head_neutral)"
+  "motivation": "Brief stylist recommendation based on current weather data using human-readable clothing names (DO NOT mention head_neutral)"
 }''';
   }
 }
